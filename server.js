@@ -16,22 +16,13 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL =
   process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
-app.use(
-  express.json({
-    limit: "50mb"
-  })
-);
+app.use(express.json({ limit: "50mb" }));
 
 app.use(
   express.static(
     path.join(__dirname, "public")
   )
 );
-
-
-/* =========================
-   SYSTEM PROMPT
-========================= */
 
 const SYSTEM_PROMPT = `
 You are NA MUSAMMAN AI GLOBAL.
@@ -43,7 +34,6 @@ Always answer the user in the same language the user uses.
 For Hausa users, use simple and clear Hausa.
 
 You can help with:
-
 - General questions
 - Education
 - Chemistry
@@ -56,51 +46,34 @@ You can help with:
 - Letters
 - Speeches
 - Image understanding
-- Image comparison
 - Study assistance
-- Writing and editing
+- Writing and editing.
 
-When images are provided, carefully examine all images and follow the user's instructions.
+When images are provided, analyze them carefully.
+
+If multiple images are provided, consider all of them together.
 
 Be concise when the user asks for a short answer.
 
 Do not claim to have performed an action that you cannot actually perform.
 `;
 
-
-/* =========================
-   STATUS
-========================= */
-
-app.get("/api/status", (req, res) => {
-
+app.get("/api/status", (_req, res) => {
   res.json({
     ok: true,
     app: "NA MUSAMMAN AI GLOBAL",
     configured: Boolean(GEMINI_API_KEY),
     model: GEMINI_MODEL
   });
-
 });
 
-
-/* =========================
-   CHAT
-========================= */
-
 app.post("/api/chat", async (req, res) => {
-
   try {
-
     if (!GEMINI_API_KEY) {
-
       return res.status(500).json({
-        error:
-          "Gemini API key is not configured on the server."
+        error: "Gemini API key is not configured on the server."
       });
-
     }
-
 
     const {
       message = "",
@@ -109,247 +82,163 @@ app.post("/api/chat", async (req, res) => {
       history = []
     } = req.body || {};
 
-
     const contents = [];
 
-
-    /* =====================
-       HISTORY
-    ===================== */
-
     if (Array.isArray(history)) {
-
       for (const item of history.slice(-12)) {
-
-        if (
-          !item ||
-          !item.role ||
-          !item.content
-        ) {
+        if (!item || !item.role) {
           continue;
         }
 
+        const parts = [];
 
-        const role =
-          item.role === "assistant"
-            ? "model"
-            : "user";
-
-
-        const parts = [
-          {
+        if (item.content) {
+          parts.push({
             text: String(item.content)
-          }
-        ];
+          });
+        }
 
-
-        const oldImages =
+        const historyImages =
           Array.isArray(item.images)
             ? item.images
             : item.image
               ? [item.image]
               : [];
 
-
-        for (const img of oldImages) {
-
+        for (const img of historyImages) {
           if (typeof img !== "string") {
             continue;
           }
-
 
           const match = img.match(
             /^data:(image\/[^;]+);base64,(.+)$/
           );
 
-
           if (match) {
-
             parts.push({
               inline_data: {
                 mime_type: match[1],
                 data: match[2]
               }
             });
-
           }
-
         }
 
-
-        contents.push({
-          role,
-          parts
-        });
-
+        if (parts.length > 0) {
+          contents.push({
+            role:
+              item.role === "assistant"
+                ? "model"
+                : "user",
+            parts
+          });
+        }
       }
-
     }
-
-
-    /* =====================
-       CURRENT MESSAGE
-    ===================== */
 
     const currentParts = [];
 
-
     if (message) {
-
       currentParts.push({
         text: String(message)
       });
-
     }
 
+    const currentImages = [];
 
-    let imageList =
-      Array.isArray(images)
-        ? [...images]
-        : [];
-
+    if (Array.isArray(images)) {
+      currentImages.push(...images);
+    }
 
     if (
       image &&
       typeof image === "string" &&
-      !imageList.includes(image)
+      !currentImages.includes(image)
     ) {
-
-      imageList.push(image);
-
+      currentImages.push(image);
     }
 
-
-    for (const img of imageList) {
-
+    for (const img of currentImages) {
       if (typeof img !== "string") {
         continue;
       }
-
 
       const match = img.match(
         /^data:(image\/[^;]+);base64,(.+)$/
       );
 
-
-      if (!match) {
-        continue;
+      if (match) {
+        currentParts.push({
+          inline_data: {
+            mime_type: match[1],
+            data: match[2]
+          }
+        });
       }
-
-
-      currentParts.push({
-        inline_data: {
-          mime_type: match[1],
-          data: match[2]
-        }
-      });
-
     }
 
-
-    if (!currentParts.length) {
-
+    if (currentParts.length === 0) {
       currentParts.push({
-        text:
-          "Please respond to the user's request."
+        text: "Please respond to the user's request."
       });
-
     }
-
 
     contents.push({
       role: "user",
       parts: currentParts
     });
 
-
-    /* =====================
-       GEMINI REQUEST
-    ===================== */
-
     const url =
-      "https://generativelanguage.googleapis.com/v1beta/models/" +
-      encodeURIComponent(GEMINI_MODEL) +
-      ":generateContent";
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+        GEMINI_MODEL
+      )}:generateContent`;
 
-
-    const response = await fetch(
-      url,
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": GEMINI_API_KEY
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": GEMINI_API_KEY
+      },
+      body: JSON.stringify({
+        system_instruction: {
+          parts: [
+            {
+              text: SYSTEM_PROMPT
+            }
+          ]
         },
-
-        body: JSON.stringify({
-
-          system_instruction: {
-            parts: [
-              {
-                text: SYSTEM_PROMPT
-              }
-            ]
-          },
-
-          contents,
-
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 4096
-          }
-
-        })
-      }
-    );
-
+        contents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 4096
+        }
+      })
+    });
 
     const data = await response.json();
 
-
     if (!response.ok) {
-
       console.error(
         "Gemini error:",
         JSON.stringify(data)
       );
-
 
       return res.status(response.status).json({
         error:
           data?.error?.message ||
           "Gemini API request failed."
       });
-
     }
-
 
     let answer = "";
 
-
-    for (
-      const candidate
-      of data?.candidates || []
-    ) {
-
-      for (
-        const part
-        of candidate?.content?.parts || []
-      ) {
-
-        if (
-          typeof part?.text === "string"
-        ) {
-
+    for (const candidate of data?.candidates || []) {
+      for (const part of candidate?.content?.parts || []) {
+        if (typeof part?.text === "string") {
           answer += part.text;
-
         }
-
       }
-
     }
-
 
     res.json({
       ok: true,
@@ -358,32 +247,21 @@ app.post("/api/chat", async (req, res) => {
         "I could not generate a response."
     });
 
-
   } catch (error) {
-
     console.error(
       "Server error:",
       error
     );
-
 
     res.status(500).json({
       error:
         error?.message ||
         "Internal server error."
     });
-
   }
-
 });
 
-
-/* =========================
-   FRONTEND
-========================= */
-
-app.get("*", (req, res) => {
-
+app.get("*", (_req, res) => {
   res.sendFile(
     path.join(
       __dirname,
@@ -391,22 +269,11 @@ app.get("*", (req, res) => {
       "index.html"
     )
   );
-
 });
 
-
-/* =========================
-   START
-========================= */
-
-app.listen(
-  PORT,
-  () => {
-
-    console.log(
-      `NA MUSAMMAN AI GLOBAL running on port ${PORT}`
-    );
-
-  }
-);
+app.listen(PORT, () => {
+  console.log(
+    `NA MUSAMMAN AI GLOBAL running on port ${PORT}`
+  );
+});
 ```
