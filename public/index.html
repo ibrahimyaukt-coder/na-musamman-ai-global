@@ -1,937 +1,1508 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NA MUSAMMAN AI GLOBAL</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-:root{
-  --bg:#ffffff;
-  --text:#171717;
-  --muted:#6b7280;
-  --border:#e5e7eb;
-  --sidebar:#f7f7f8;
-  --blue:#0b84ff;
-  --user:#eaf4ff;
-}
+  <title>NA MUSAMMAN AI GLOBAL</title>
 
-*{box-sizing:border-box}
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-body{
-  margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  height:100vh;
-  overflow:hidden;
-}
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #ffffff;
+      color: #111827;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-.app{
-  display:flex;
-  height:100vh;
-}
+    body.dark {
+      background: #111827;
+      color: #f9fafb;
+    }
 
-.sidebar{
-  width:270px;
-  background:var(--sidebar);
-  border-right:1px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  padding:14px;
-}
+    button,
+    input,
+    textarea {
+      font-family: inherit;
+    }
 
-.brand{
-  font-weight:800;
-  font-size:17px;
-  padding:10px 8px 18px;
-}
+    .app {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+    }
 
-.brand span{
-  color:var(--blue);
-}
+    /* SIDEBAR */
 
-.new{
-  border:1px solid var(--border);
-  background:white;
-  border-radius:10px;
-  padding:11px 13px;
-  font-weight:700;
-  cursor:pointer;
-  text-align:left;
-}
+    .sidebar {
+      width: 270px;
+      background: #f7f7f8;
+      border-right: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
 
-.history-title{
-  font-size:12px;
-  color:var(--muted);
-  margin:22px 8px 8px;
-}
+    body.dark .sidebar {
+      background: #171717;
+      border-color: #2d2d2d;
+    }
 
-.history{
-  overflow:auto;
-  flex:1;
-}
+    .brand {
+      font-size: 19px;
+      font-weight: 700;
+      color: #075985;
+      margin-bottom: 22px;
+      line-height: 1.3;
+    }
 
-.history button{
-  display:block;
-  width:100%;
-  border:0;
-  background:transparent;
-  text-align:left;
-  padding:9px;
-  border-radius:8px;
-  cursor:pointer;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
+    .brand span {
+      color: #06b6d4;
+    }
 
-.history button:hover{
-  background:#eaecef;
-}
+    .new-chat {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      background: white;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
 
-.side-bottom{
-  border-top:1px solid var(--border);
-  padding-top:10px;
-}
+    .new-chat:hover {
+      background: #f3f4f6;
+    }
 
-.side-bottom button{
-  width:100%;
-  border:0;
-  background:transparent;
-  text-align:left;
-  padding:10px;
-  border-radius:8px;
-  cursor:pointer;
-}
+    body.dark .new-chat {
+      background: #222;
+      color: white;
+      border-color: #444;
+    }
 
-.main{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  min-width:0;
-}
+    .history-title {
+      font-size: 12px;
+      color: #6b7280;
+      margin: 10px 5px;
+      text-transform: uppercase;
+    }
 
-.top{
-  height:58px;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:800;
-  position:relative;
-}
+    .history {
+      flex: 1;
+      overflow-y: auto;
+    }
 
-.menu{
-  display:none;
-  position:absolute;
-  left:12px;
-  border:0;
-  background:transparent;
-  font-size:23px;
-}
+    .history-item {
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-.chat{
-  flex:1;
-  overflow:auto;
-}
+    .history-item:hover {
+      background: #e5e7eb;
+    }
 
-.welcome{
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:30px;
-}
+    body.dark .history-item:hover {
+      background: #292929;
+    }
 
-.welcome h1{
-  font-size:30px;
-  margin:0 0 10px;
-}
+    .sidebar-bottom {
+      border-top: 1px solid #e5e7eb;
+      padding-top: 12px;
+    }
 
-.welcome p{
-  color:var(--muted);
-}
+    body.dark .sidebar-bottom {
+      border-color: #2d2d2d;
+    }
 
-.messages{
-  max-width:900px;
-  margin:auto;
-  padding:25px 18px 120px;
-}
+    .settings-btn {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 10px;
+      cursor: pointer;
+      text-align: left;
+      border-radius: 8px;
+      font-size: 14px;
+    }
 
-.msg{
-  display:flex;
-  gap:12px;
-  margin:18px 0;
-}
+    .settings-btn:hover {
+      background: #e5e7eb;
+    }
 
-.avatar{
-  width:32px;
-  height:32px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:12px;
-  font-weight:800;
-  flex:none;
-}
+    body.dark .settings-btn {
+      color: white;
+    }
 
-.ai{
-  background:#111;
-  color:white;
-}
+    body.dark .settings-btn:hover {
+      background: #292929;
+    }
 
-.me{
-  background:#dbeafe;
-  color:#075985;
-}
+    /* MAIN */
 
-.bubble{
-  max-width:calc(100% - 44px);
-  line-height:1.55;
-  white-space:pre-wrap;
-}
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
 
-.user-bubble{
-  background:var(--user);
-  padding:11px 14px;
-  border-radius:16px;
-}
+    .topbar {
+      height: 60px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      font-weight: 600;
+    }
 
-.composer-wrap{
-  position:fixed;
-  bottom:0;
-  left:270px;
-  right:0;
-  background:linear-gradient(
-    transparent,
-    var(--bg) 30%
-  );
-  padding:20px 18px 18px;
-}
+    body.dark .topbar {
+      border-color: #2d2d2d;
+    }
 
-.composer{
-  max-width:900px;
-  margin:auto;
-  border:1px solid var(--border);
-  background:white;
-  border-radius:16px;
-  padding:8px;
-  box-shadow:0 4px 20px #0000000b;
-  display:flex;
-  align-items:flex-end;
-  gap:7px;
-}
+    .mobile-brand {
+      display: none;
+    }
 
-.icon{
-  border:0;
-  background:transparent;
-  font-size:20px;
-  cursor:pointer;
-  padding:9px;
-}
+    /* CHAT */
 
-.textarea{
-  flex:1;
-  border:0;
-  outline:0;
-  resize:none;
-  max-height:150px;
-  font:inherit;
-  padding:10px;
-}
+    .chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 25px 20px 150px;
+    }
 
-.send{
-  background:#111;
-  color:white;
-  border:0;
-  border-radius:10px;
-  width:40px;
-  height:40px;
-  cursor:pointer;
-  font-size:17px;
-}
+    .welcome {
+      max-width: 760px;
+      margin: 70px auto;
+      text-align: center;
+    }
 
-.preview{
-  max-width:900px;
-  margin:0 auto 7px;
-}
+    .welcome-logo {
+      font-size: 30px;
+      margin-bottom: 15px;
+      color: #075985;
+    }
 
-.preview img{
-  max-height:100px;
-  border-radius:10px;
-}
+    .welcome h1 {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
 
-.hidden{
-  display:none;
-}
+    .welcome p {
+      color: #6b7280;
+      line-height: 1.6;
+    }
 
-.modal{
-  position:fixed;
-  inset:0;
-  background:#0008;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-}
+    /* MESSAGE ROWS */
 
-.modal-box{
-  background:white;
-  border-radius:16px;
-  padding:22px;
-  max-width:420px;
-  width:100%;
-}
+    .message-row {
+      display: flex;
+      width: 100%;
+      margin-bottom: 18px;
+    }
 
-.modal-box h2{
-  margin-top:0;
-}
+    .message-row.user {
+      justify-content: flex-end;
+    }
 
-.close{
-  float:right;
-  border:0;
-  background:transparent;
-  font-size:22px;
-}
+    .message-row.assistant {
+      justify-content: flex-start;
+    }
 
-.dark{
-  --bg:#171717;
-  --text:#f5f5f5;
-  --muted:#aaa;
-  --border:#383838;
-  --sidebar:#202020;
-  --user:#26384a;
-}
+    .message {
+      max-width: min(760px, 82%);
+      padding: 12px 15px;
+      border-radius: 16px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
 
-.dark .composer,
-.dark .modal-box,
-.dark .new{
-  background:#222;
-  color:white;
-}
+    .message-row.user .message {
+      background: #075985;
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
 
-.dark .user-bubble{
-  background:#26384a;
-}
+    .message-row.assistant .message {
+      background: #f1f5f9;
+      color: #111827;
+      border-bottom-left-radius: 5px;
+    }
 
-.dark .send{
-  background:white;
-  color:#111;
-}
+    body.dark .message-row.assistant .message {
+      background: #262626;
+      color: #f9fafb;
+    }
 
-@media(max-width:700px){
+    .message-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
 
-  .sidebar{
-    position:fixed;
-    z-index:5;
-    left:-280px;
-    top:0;
-    bottom:0;
-    transition:.2s;
-  }
+    .message-images img {
+      width: 150px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
 
-  .sidebar.open{
-    left:0;
-  }
+    /* COMPOSER */
 
-  .menu{
-    display:block;
-  }
+    .composer-area {
+      position: fixed;
+      bottom: 0;
+      left: 270px;
+      right: 0;
+      padding: 15px 20px 20px;
+      background: linear-gradient(
+        transparent,
+        rgba(255,255,255,0.96) 25%
+      );
+    }
 
-  .composer-wrap{
-    left:0;
-  }
+    body.dark .composer-area {
+      background: linear-gradient(
+        transparent,
+        rgba(17,24,39,0.96) 25%
+      );
+    }
 
-  .top{
-    padding-left:45px;
-  }
+    .composer {
+      max-width: 850px;
+      margin: auto;
+      border: 1px solid #d1d5db;
+      background: white;
+      border-radius: 18px;
+      padding: 10px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    }
 
-  .welcome h1{
-    font-size:24px;
-  }
+    body.dark .composer {
+      background: #1f2937;
+      border-color: #374151;
+    }
 
-  .messages{
-    padding-left:12px;
-    padding-right:12px;
-  }
-}
-</style>
+    /* IMAGE PREVIEW */
+
+    .preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 5px;
+      margin-bottom: 5px;
+    }
+
+    .preview.hidden {
+      display: none;
+    }
+
+    .preview-item {
+      position: relative;
+      width: 75px;
+      height: 65px;
+    }
+
+    .preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 9px;
+      border: 1px solid #d1d5db;
+    }
+
+    .remove-image {
+      position: absolute;
+      right: -5px;
+      top: -5px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: none;
+      background: #ef4444;
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .composer-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    textarea {
+      flex: 1;
+      border: none;
+      outline: none;
+      resize: none;
+      max-height: 140px;
+      min-height: 42px;
+      padding: 10px;
+      background: transparent;
+      color: inherit;
+      font-size: 15px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .icon-btn:hover {
+      background: #f3f4f6;
+    }
+
+    body.dark .icon-btn:hover {
+      background: #374151;
+    }
+
+    .send-btn {
+      background: #075985;
+      color: white;
+    }
+
+    .send-btn:hover {
+      background: #0369a1;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .status {
+      text-align: center;
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 7px;
+    }
+
+    /* SETTINGS */
+
+    .settings-panel {
+      position: fixed;
+      right: 20px;
+      bottom: 80px;
+      width: 270px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      z-index: 50;
+    }
+
+    body.dark .settings-panel {
+      background: #1f2937;
+      border-color: #374151;
+    }
+
+    .settings-panel h3 {
+      margin-bottom: 15px;
+    }
+
+    .setting-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+    }
+
+    .danger {
+      color: #dc2626;
+      cursor: pointer;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 800px) {
+      .sidebar {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        border: none;
+      }
+
+      .composer-area {
+        left: 0;
+        padding: 10px;
+      }
+
+      .topbar {
+        justify-content: center;
+      }
+
+      .mobile-brand {
+        display: block;
+        font-size: 16px;
+        font-weight: 700;
+        color: #075985;
+      }
+
+      .chat {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .message {
+        max-width: 88%;
+      }
+
+      .welcome {
+        margin: 50px auto;
+      }
+
+      .welcome h1 {
+        font-size: 23px;
+      }
+
+      .message-images img {
+        width: 120px;
+        height: 95px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
 <div class="app">
 
-<aside class="sidebar" id="sidebar">
+  <!-- SIDEBAR -->
 
-<div class="brand">
-✦ <span>NA MUSAMMAN</span> AI GLOBAL
-</div>
+  <aside class="sidebar">
 
-<button class="new" onclick="newChat()">
-＋ New chat
-</button>
+    <div class="brand">
+      ✦ <span>NA MUSAMMAN</span><br>
+      AI GLOBAL
+    </div>
 
-<div class="history-title">
-CHAT HISTORY
-</div>
+    <button class="new-chat" id="newChat">
+      ＋ New chat
+    </button>
 
-<div class="history" id="history"></div>
+    <div class="history-title">
+      Chat History
+    </div>
 
-<div class="side-bottom">
+    <div class="history" id="history"></div>
 
-<button onclick="openSettings()">
-⚙ Settings
-</button>
+    <div class="sidebar-bottom">
 
-<button onclick="clearHistory()">
-🗑 Clear history
-</button>
+      <button class="settings-btn" id="settingsBtn">
+        ⚙ Settings
+      </button>
 
-</div>
+    </div>
 
-</aside>
+  </aside>
 
-<main class="main">
+  <!-- MAIN -->
 
-<header class="top">
+  <main class="main">
 
-<button class="menu" onclick="toggleSidebar()">
-☰
-</button>
+    <header class="topbar">
+      <div class="mobile-brand">
+        ✦ NA MUSAMMAN AI GLOBAL
+      </div>
+    </header>
 
-✦ AI ASSISTANT
+    <section class="chat" id="chat">
 
-</header>
+      <div class="welcome" id="welcome">
 
-<section class="chat" id="chat">
+        <div class="welcome-logo">
+          ✦
+        </div>
 
-<div class="welcome" id="welcome">
+        <h1>
+          NA MUSAMMAN AI GLOBAL
+        </h1>
 
-<div>
+        <p>
+          AI Assistant for questions, education,
+          writing, translation, reports and image understanding.
+        </p>
 
-<h1>
-How can I help you today?
-</h1>
+      </div>
 
-<p>
-NA MUSAMMAN AI GLOBAL — AI Assistant
-</p>
+    </section>
 
-</div>
-
-</div>
-
-<div class="messages" id="messages"></div>
-
-</section>
-
-<div class="composer-wrap">
-
-<div class="preview hidden" id="preview">
-
-<img id="previewImg">
+  </main>
 
 </div>
 
-<div class="composer">
 
-<button
-class="icon"
-title="Upload image"
-onclick="document.getElementById('file').click()">
-＋
-</button>
+<!-- COMPOSER -->
 
-<input
-id="file"
-type="file"
-accept="image/*"
-class="hidden">
+<div class="composer-area">
 
-<textarea
-id="input"
-class="textarea"
-rows="1"
-placeholder="Message NA MUSAMMAN AI GLOBAL...">
-</textarea>
+  <div class="composer">
 
-<button
-class="icon"
-title="Voice input"
-onclick="voiceInput()">
-🎙
-</button>
+    <div
+      id="preview"
+      class="preview hidden">
+    </div>
 
-<button
-class="send"
-onclick="sendMessage()">
-➤
-</button>
+    <div class="composer-row">
 
-</div>
+      <button
+        class="icon-btn"
+        id="uploadBtn"
+        title="Upload images">
+        ＋
+      </button>
 
-</div>
+      <input
+        id="file"
+        type="file"
+        accept="image/*"
+        multiple
+        class="hidden">
 
-</main>
-</div>
+      <textarea
+        id="message"
+        placeholder="Message NA MUSAMMAN AI GLOBAL..."
+        rows="1"></textarea>
 
-<div class="modal" id="settings">
+      <button
+        class="icon-btn"
+        id="micBtn"
+        title="Voice input">
+        🎤
+      </button>
 
-<div class="modal-box">
+      <button
+        class="icon-btn send-btn"
+        id="sendBtn"
+        title="Send">
+        ➤
+      </button>
 
-<button class="close" onclick="closeSettings()">
-×
-</button>
+    </div>
 
-<h2>Settings</h2>
+    <div class="status">
+      NA MUSAMMAN AI GLOBAL • AI Assistant
+    </div>
 
-<label>
-<input
-type="checkbox"
-id="darkMode"
-onchange="toggleDark()">
-Dark mode
-</label>
-
-<p style="color:var(--muted);font-size:13px;margin-top:18px">
-NA MUSAMMAN AI GLOBAL
-</p>
+  </div>
 
 </div>
 
+
+<!-- SETTINGS -->
+
+<div
+  id="settingsPanel"
+  class="settings-panel hidden">
+
+  <h3>Settings</h3>
+
+  <div class="setting-line">
+    <span>Dark mode</span>
+
+    <input
+      type="checkbox"
+      id="darkMode">
+  </div>
+
+  <div class="setting-line">
+    <span
+      class="danger"
+      id="clearHistory">
+      Clear chat history
+    </span>
+  </div>
+
 </div>
+
 
 <script>
 
-const input =
-document.getElementById("input");
+  /* =========================
+     STATE
+  ========================= */
 
-const messages =
-document.getElementById("messages");
+  let imageData = [];
 
-const welcome =
-document.getElementById("welcome");
+  let messages = [];
 
-const historyBox =
-document.getElementById("history");
+  let chats = JSON.parse(
+    localStorage.getItem("naMusammanChats") || "[]"
+  );
 
-const file =
-document.getElementById("file");
 
-const preview =
-document.getElementById("preview");
+  /* =========================
+     ELEMENTS
+  ========================= */
 
-const previewImg =
-document.getElementById("previewImg");
+  const chat =
+    document.getElementById("chat");
 
-let imageData = null;
+  const welcome =
+    document.getElementById("welcome");
 
-let chatHistory =
-JSON.parse(
-localStorage.getItem("nm_history") || "[]"
-);
+  const messageInput =
+    document.getElementById("message");
 
-function save(){
+  const sendBtn =
+    document.getElementById("sendBtn");
 
-localStorage.setItem(
-"nm_history",
-JSON.stringify(chatHistory)
-);
+  const uploadBtn =
+    document.getElementById("uploadBtn");
 
-renderHistory();
+  const fileInput =
+    document.getElementById("file");
 
-}
+  const preview =
+    document.getElementById("preview");
 
-function renderHistory(){
+  const historyBox =
+    document.getElementById("history");
 
-historyBox.innerHTML="";
+  const newChat =
+    document.getElementById("newChat");
 
-chatHistory
-.slice()
-.reverse()
-.forEach((c,i)=>{
+  const micBtn =
+    document.getElementById("micBtn");
 
-const b =
-document.createElement("button");
+  const settingsBtn =
+    document.getElementById("settingsBtn");
 
-b.textContent =
-c.title || "New chat";
+  const settingsPanel =
+    document.getElementById("settingsPanel");
 
-b.onclick =
-()=>loadChat(
-chatHistory.length - 1 - i
-);
+  const darkMode =
+    document.getElementById("darkMode");
 
-historyBox.appendChild(b);
+  const clearHistory =
+    document.getElementById("clearHistory");
 
-});
 
-}
+  /* =========================
+     DARK MODE
+  ========================= */
 
-function loadChat(i){
+  const savedDark =
+    localStorage.getItem("naMusammanDark");
 
-const c = chatHistory[i];
+  if (savedDark === "true") {
+    document.body.classList.add("dark");
+    darkMode.checked = true;
+  }
 
-if(!c)return;
+  darkMode.addEventListener("change", () => {
 
-messages.innerHTML="";
+    document.body.classList.toggle(
+      "dark",
+      darkMode.checked
+    );
 
-welcome.style.display="none";
+    localStorage.setItem(
+      "naMusammanDark",
+      darkMode.checked
+    );
 
-c.messages.forEach(m =>
-addMessage(
-m.role,
-m.content
-)
-);
+  });
 
-}
 
-function newChat(){
+  /* =========================
+     SETTINGS
+  ========================= */
 
-messages.innerHTML="";
+  settingsBtn.addEventListener("click", () => {
 
-welcome.style.display="flex";
+    settingsPanel.classList.toggle("hidden");
 
-input.value="";
+  });
 
-imageData=null;
 
-preview.classList.add("hidden");
+  clearHistory.addEventListener("click", () => {
 
-toggleSidebar(false);
+    localStorage.removeItem("naMusammanChats");
 
-}
+    chats = [];
 
-function clearHistory(){
+    renderHistory();
 
-if(confirm("Clear chat history?")){
+    startNewChat();
 
-chatHistory=[];
+  });
 
-save();
 
-newChat();
+  /* =========================
+     NEW CHAT
+  ========================= */
 
-}
+  newChat.addEventListener(
+    "click",
+    startNewChat
+  );
 
-}
 
-function toggleSidebar(v){
+  function startNewChat() {
 
-document
-.getElementById("sidebar")
-.classList.toggle(
-"open",
-v
-);
+    messages = [];
 
-}
+    imageData = [];
 
-function openSettings(){
+    chat.innerHTML = "";
 
-document
-.getElementById("settings")
-.style.display="flex";
+    chat.appendChild(
+      createWelcome()
+    );
 
-}
+    clearPreview();
 
-function closeSettings(){
+  }
 
-document
-.getElementById("settings")
-.style.display="none";
 
-}
+  function createWelcome() {
 
-function toggleDark(){
+    const div =
+      document.createElement("div");
 
-document.body.classList.toggle(
-"dark",
-document.getElementById("darkMode").checked
-);
+    div.className = "welcome";
 
-localStorage.setItem(
-"dark",
-document.getElementById("darkMode").checked
-);
+    div.innerHTML = `
+      <div class="welcome-logo">✦</div>
 
-}
+      <h1>NA MUSAMMAN AI GLOBAL</h1>
 
-function addMessage(role,text){
+      <p>
+        AI Assistant for questions, education,
+        writing, translation, reports and image understanding.
+      </p>
+    `;
 
-welcome.style.display="none";
+    return div;
 
-const row =
-document.createElement("div");
+  }
 
-row.className="msg";
 
-const av =
-document.createElement("div");
+  /* =========================
+     IMAGE UPLOAD
+  ========================= */
 
-av.className =
-"avatar " +
-(role==="assistant" ? "ai" : "me");
+  uploadBtn.addEventListener(
+    "click",
+    () => fileInput.click()
+  );
 
-av.textContent =
-role==="assistant" ? "AI" : "YOU";
 
-const bubble =
-document.createElement("div");
+  fileInput.addEventListener(
+    "change",
+    async () => {
 
-bubble.className =
-"bubble " +
-(role==="user" ? "user-bubble" : "");
+      const files =
+        Array.from(fileInput.files || []);
 
-bubble.textContent=text;
+      if (!files.length) return;
 
-row.append(
-av,
-bubble
-);
+      imageData = [];
 
-messages.appendChild(row);
+      clearPreview();
 
-document
-.getElementById("chat")
-.scrollTop =
-document
-.getElementById("chat")
-.scrollHeight;
+      for (const file of files) {
 
-}
+        if (!file.type.startsWith("image/")) {
+          continue;
+        }
 
-file.onchange=()=>{
+        const data =
+          await resizeImage(file);
 
-const f=file.files[0];
+        imageData.push(data);
 
-if(!f)return;
+      }
 
-const r=new FileReader();
+      renderPreview();
 
-r.onload=()=>{
+      fileInput.value = "";
 
-imageData=r.result;
+    }
+  );
 
-previewImg.src=imageData;
 
-preview.classList.remove("hidden");
+  /* =========================
+     RESIZE IMAGE
+  ========================= */
 
-};
+  function resizeImage(file) {
 
-r.readAsDataURL(f);
+    return new Promise((resolve) => {
 
-};
+      const reader =
+        new FileReader();
 
-input.addEventListener(
-"keydown",
-e=>{
+      reader.onload = () => {
 
-if(
-e.key==="Enter" &&
-!e.shiftKey
-){
+        const img =
+          new Image();
 
-e.preventDefault();
+        img.onload = () => {
 
-sendMessage();
+          const maxSize = 1400;
 
-}
+          let width =
+            img.width;
 
-});
+          let height =
+            img.height;
 
-async function sendMessage(){
+          if (width > maxSize) {
 
-const text =
-input.value.trim();
+            height =
+              Math.round(
+                height *
+                maxSize /
+                width
+              );
 
-if(!text && !imageData)
-return;
+            width = maxSize;
 
-const sentImage =
-imageData;
+          }
 
-input.value="";
+          if (height > maxSize) {
 
-preview.classList.add("hidden");
+            width =
+              Math.round(
+                width *
+                maxSize /
+                height
+              );
 
-imageData=null;
+            height = maxSize;
 
-file.value="";
+          }
 
-addMessage(
-"user",
-text ||
-"Please analyze this image."
-);
+          const canvas =
+            document.createElement("canvas");
 
-const current =
-chatHistory[
-chatHistory.length - 1
-] ||
-{
-title:
-(text || "Image request")
-.slice(0,40),
-messages:[]
-};
+          canvas.width = width;
+          canvas.height = height;
 
-current.messages.push({
-role:"user",
-content:
-text ||
-"Please analyze this image.",
-image:sentImage
-});
+          const ctx =
+            canvas.getContext("2d");
 
-if(!chatHistory.includes(current))
-chatHistory.push(current);
+          ctx.drawImage(
+            img,
+            0,
+            0,
+            width,
+            height
+          );
 
-save();
+          resolve(
+            canvas.toDataURL(
+              "image/jpeg",
+              0.82
+            )
+          );
 
-const loading =
-document.createElement("div");
+        };
 
-loading.className="msg";
+        img.src =
+          reader.result;
 
-loading.id="loading";
+      };
 
-loading.innerHTML=
-'<div class="avatar ai">AI</div>' +
-'<div class="bubble">Thinking…</div>';
+      reader.readAsDataURL(file);
 
-messages.appendChild(loading);
+    });
 
-try{
+  }
 
-const prior =
-current.messages
-.slice(0,-1)
-.map(m=>({
 
-role:m.role,
+  /* =========================
+     IMAGE PREVIEW
+  ========================= */
 
-content:m.content,
+  function renderPreview() {
 
-image:m.image || null
+    preview.innerHTML = "";
 
-}));
+    if (!imageData.length) {
 
-const r =
-await fetch(
-"/api/chat",
-{
-method:"POST",
-headers:{
-"Content-Type":
-"application/json"
-},
-body:JSON.stringify({
+      preview.classList.add(
+        "hidden"
+      );
 
-message:text,
+      return;
 
-image:sentImage,
+    }
 
-history:prior
+    preview.classList.remove(
+      "hidden"
+    );
 
-})
-}
-);
+    imageData.forEach(
+      (src, index) => {
 
-const data =
-await r.json();
+        const item =
+          document.createElement(
+            "div"
+          );
 
-document
-.getElementById("loading")
-?.remove();
+        item.className =
+          "preview-item";
 
-if(!r.ok)
-throw new Error(
-data.error ||
-"Request failed"
-);
+        item.innerHTML = `
+          <img src="${src}">
+          <button
+            class="remove-image"
+            data-index="${index}">
+            ×
+          </button>
+        `;
 
-addMessage(
-"assistant",
-data.answer
-);
+        preview.appendChild(item);
 
-current.messages.push({
-role:"assistant",
-content:data.answer
-});
+      }
+    );
 
-save();
+    document
+      .querySelectorAll(".remove-image")
+      .forEach(button => {
 
-}
-catch(e){
+        button.addEventListener(
+          "click",
+          () => {
 
-document
-.getElementById("loading")
-?.remove();
+            const index =
+              Number(
+                button.dataset.index
+              );
 
-addMessage(
-"assistant",
-"Error: " + e.message
-);
+            imageData.splice(
+              index,
+              1
+            );
 
-}
+            renderPreview();
 
-}
+          }
+        );
 
-function voiceInput(){
+      });
 
-const SR =
-window.SpeechRecognition ||
-window.webkitSpeechRecognition;
+  }
 
-if(!SR){
 
-alert(
-"Voice input is not supported by this browser."
-);
+  function clearPreview() {
 
-return;
+    imageData = [];
 
-}
+    preview.innerHTML = "";
 
-const r =
-new SR();
+    preview.classList.add(
+      "hidden"
+    );
 
-r.lang="en-US";
+  }
 
-r.onresult=e=>{
 
-input.value =
-e.results[0][0].transcript;
+  /* =========================
+     SEND MESSAGE
+  ========================= */
 
-};
+  sendBtn.addEventListener(
+    "click",
+    sendMessage
+  );
 
-r.start();
 
-}
+  messageInput.addEventListener(
+    "keydown",
+    (event) => {
 
-if(
-localStorage.getItem("dark")
-==="true"
-){
+      if (
+        event.key === "Enter" &&
+        !event.shiftKey
+      ) {
 
-document.body.classList.add("dark");
+        event.preventDefault();
 
-document.getElementById(
-"darkMode"
-).checked=true;
+        sendMessage();
 
-}
+      }
 
-renderHistory();
+    }
+  );
 
-</script>
 
-</body>
-</html>
+  async function sendMessage() {
+
+    const text =
+      messageInput.value.trim();
+
+    if (
+      !text &&
+      imageData.length === 0
+    ) {
+      return;
+    }
+
+
+    if (welcome) {
+      welcome.remove();
+    }
+
+
+    const userText =
+      text ||
+      "Please analyze these images.";
+
+
+    const currentImages =
+      [...imageData];
+
+
+    addMessage(
+      "user",
+      userText,
+      currentImages
+    );
+
+
+    messages.push({
+
+      role: "user",
+
+      content: userText,
+
+      images: currentImages
+
+    });
+
+
+    messageInput.value = "";
+
+    clearPreview();
+
+
+    const loading =
+      addMessage(
+        "assistant",
+        "Thinking..."
+      );
+
+
+    try {
+
+      const history =
+        messages
+          .slice(-12)
+          .map(item => ({
+
+            role:
+              item.role,
+
+            content:
+              item.content,
+
+            image:
+              item.images?.[0] || null
+
+          }));
+
+
+      const response =
+        await fetch(
+          "/api/chat",
+          {
+
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+
+              message:
+                userText,
+
+              images:
+                currentImages,
+
+              image:
+                currentImages[0] ||
+                null,
+
+              history
+
+            })
+
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      loading.remove();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data?.error ||
+          "Request failed."
+        );
+
+      }
+
+
+      const answer =
+        data?.answer ||
+        "I could not generate a response.";
+
+
+      addMessage(
+        "assistant",
+        answer
+      );
+
+
+      messages.push({
+
+        role: "assistant",
+
+        content: answer,
+
+        images: []
+
+      });
+
+
+      saveChat();
+
+    } catch (error) {
+
+      loading.remove();
+
+      addMessage(
+        "assistant",
+        "❌ Error: " +
+        error.message
+      );
+
+    }
+
+  }
+
+
+  /* =========================
+     ADD MESSAGE
+  ========================= */
+
+  function addMessage(
+    role,
+    text,
+    images = []
+  ) {
+
+    const row =
+      document.createElement(
+        "div"
+      );
+
+    row.className =
+      "message-row " +
+      role;
+
+
+    const bubble =
+      document.createElement(
+        "div"
+      );
+
+    bubble.className =
+      "message";
+
+
+    if (
+      images &&
+      images.length
+    ) {
+
+      const imagesBox =
+        document.createElement(
+          "div"
+        );
+
+      imagesBox.className =
+        "message-images";
+
+
+      images.forEach(
+        src => {
+
+          const img =
+            document.createElement(
+              "img"
+            );
+
+          img.src = src;
+
+          imagesBox.appendChild(
+            img
+          );
+
+        }
+      );
+
+
+      bubble.appendChild(
+        imagesBox
+      );
+
+    }
+
+
+    const textDiv =
+      document.createElement(
+        "div"
+      );
+
+    textDiv.textContent =
+      text;
+
+
+    bubble.appendChild(
+      textDiv
+    );
+
+
+    row.appendChild(
+      bubble
+    );
+
+
+    chat.appendChild(
+      row
+    );
+
+
+    chat.scrollTop =
+      chat.scrollHeight;
+
+
+    return row;
+
+  }
+
+
+  /* =========================
+     SAVE CHAT
+  ========================= */
+
+  function saveChat() {
+
+    if (!messages.length) {
+      return;
+    }
+
+
+    const firstUser =
+      messages.find(
+        item =>
+          item.role === "user"
+      );
+
+
+    const title =
+      firstUser?.content ||
+      "New chat";
+
+
+    const chatData = {
+
+      id:
+        Date.now(),
+
+      title:
+        title.substring(
+          0,
+          60
+        ),
+
+      messages:
+        messages
+
+    };
+
+
+    chats.unshift(
+      chatData
+    );
+
+
+    chats =
+      chats.slice(
+        0,
+        30
+      );
+
+
+    localStorage.setItem(
+      "naMusammanChats",
+      JSON.stringify(chats)
+    );
+
+
+    renderHistory();
+
+  }
+
+
+  /* =========================
+     HISTORY
+  ========================= */
+
+  function renderHistory() {
+
+    historyBox.innerHTML = "";
+
+
+    chats.forEach(
+      item => {
+
+        const div =
+          document.createElement(
+            "div"
+          );
+
+        div.className =
+          "history-item";
+
+        div.textContent =
+          item.title;
+
+
+        div.addEventListener(
+          "click",
+          () => loadChat(item)
+        );
+
+
+        historyBox.appendChild(
+          div
+        );
+
+      }
+    );
+
+  }
+
+
+  function loadChat(savedChat) {
+
+    messages =
+      savedChat.messages || [];
+
+
+    chat.innerHTML = "";
+
+
+    messages.forEach(
+      item => {
+
+        addMessage(
+
+          item.role,
+
+          item.content,
+
+          item.images || []
+
+        );
+
+      }
+    );
+
+  }
+
+
+  renderHistory();
+
+
+  /* =========================
+     VOICE INPUT
+  ========================= */
+
+  let recognition = null;
+
+
+  if (
+    "webkitSpeechRecognition"
+    in window
+  ) {
+
+    recognition =
+      new webkitSpeechRecognition();
+
+    recognition.continuous =
+      false;
+
+    recognition.interimResults =
+      false;
+
+    recognition.lang =
+      "ha-NG";
+
+
+    recognition.onresult =
+      (event) => {
+
+        const transcript =
+          event
+            .results[0][0]
+            .transcript;
+
+        messageInput.value +=
+          transcript;
+
+      };
+
+
+    recognition.onerror =
+      () => {
+
+        console.log(
+          "Voice recognition error"
+        );
+
+      };
+
+  }
+
+
+  micBtn.addEve
+```
