@@ -24,41 +24,18 @@ app.use(
   )
 );
 
-const SYSTEM_PROMPT = `
-You are NA MUSAMMAN AI GLOBAL.
+const SYSTEM_PROMPT =
+  "You are NA MUSAMMAN AI GLOBAL. " +
+  "You are a helpful, accurate and respectful AI assistant. " +
+  "Always answer the user in the same language the user uses. " +
+  "For Hausa users, use simple and clear Hausa. " +
+  "You can help with general questions, education, chemistry, translation, summaries, news writing, reports, social media posts, captions, letters, speeches, image understanding, study assistance, writing and editing. " +
+  "When images are provided, analyze them carefully. " +
+  "If multiple images are provided, consider all of them together. " +
+  "Be concise when the user asks for a short answer. " +
+  "Do not claim to have performed an action that you cannot actually perform.";
 
-You are a helpful, accurate and respectful AI assistant.
-
-Always answer the user in the same language the user uses.
-
-For Hausa users, use simple and clear Hausa.
-
-You can help with:
-- General questions
-- Education
-- Chemistry
-- Translation
-- Summaries
-- News writing
-- Reports
-- Social media posts
-- Captions
-- Letters
-- Speeches
-- Image understanding
-- Study assistance
-- Writing and editing.
-
-When images are provided, analyze them carefully.
-
-If multiple images are provided, consider all of them together.
-
-Be concise when the user asks for a short answer.
-
-Do not claim to have performed an action that you cannot actually perform.
-`;
-
-app.get("/api/status", (_req, res) => {
+app.get("/api/status", function (_req, res) {
   res.json({
     ok: true,
     app: "NA MUSAMMAN AI GLOBAL",
@@ -67,72 +44,78 @@ app.get("/api/status", (_req, res) => {
   });
 });
 
-app.post("/api/chat", async (req, res) => {
+app.post("/api/chat", async function (req, res) {
   try {
     if (!GEMINI_API_KEY) {
       return res.status(500).json({
-        error: "Gemini API key is not configured on the server."
+        error:
+          "Gemini API key is not configured on the server."
       });
     }
 
-    const {
-      message = "",
-      image = null,
-      images = [],
-      history = []
-    } = req.body || {};
+    const body = req.body || {};
+
+    const message = body.message || "";
+
+    const image = body.image || null;
+
+    const images = Array.isArray(body.images)
+      ? body.images
+      : [];
+
+    const history = Array.isArray(body.history)
+      ? body.history
+      : [];
 
     const contents = [];
 
-    if (Array.isArray(history)) {
-      for (const item of history.slice(-12)) {
-        if (!item || !item.role) {
+    for (const item of history.slice(-12)) {
+      if (!item || !item.role) {
+        continue;
+      }
+
+      const parts = [];
+
+      if (item.content) {
+        parts.push({
+          text: String(item.content)
+        });
+      }
+
+      const oldImages =
+        Array.isArray(item.images)
+          ? item.images
+          : item.image
+            ? [item.image]
+            : [];
+
+      for (const img of oldImages) {
+        if (typeof img !== "string") {
           continue;
         }
 
-        const parts = [];
+        const match = img.match(
+          /^data:(image\/[^;]+);base64,(.+)$/
+        );
 
-        if (item.content) {
+        if (match) {
           parts.push({
-            text: String(item.content)
+            inline_data: {
+              mime_type: match[1],
+              data: match[2]
+            }
           });
         }
+      }
 
-        const historyImages =
-          Array.isArray(item.images)
-            ? item.images
-            : item.image
-              ? [item.image]
-              : [];
-
-        for (const img of historyImages) {
-          if (typeof img !== "string") {
-            continue;
-          }
-
-          const match = img.match(
-            /^data:(image\/[^;]+);base64,(.+)$/
-          );
-
-          if (match) {
-            parts.push({
-              inline_data: {
-                mime_type: match[1],
-                data: match[2]
-              }
-            });
-          }
-        }
-
-        if (parts.length > 0) {
-          contents.push({
-            role:
-              item.role === "assistant"
-                ? "model"
-                : "user",
-            parts
-          });
-        }
+      if (parts.length > 0) {
+        contents.push({
+          role:
+            item.role === "assistant"
+              ? "model"
+              : "user",
+          parts: parts
+        });
       }
     }
 
@@ -144,11 +127,7 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    const currentImages = [];
-
-    if (Array.isArray(images)) {
-      currentImages.push(...images);
-    }
+    const currentImages = [...images];
 
     if (
       image &&
@@ -179,7 +158,8 @@ app.post("/api/chat", async (req, res) => {
 
     if (currentParts.length === 0) {
       currentParts.push({
-        text: "Please respond to the user's request."
+        text:
+          "Please respond to the user's request."
       });
     }
 
@@ -189,16 +169,18 @@ app.post("/api/chat", async (req, res) => {
     });
 
     const url =
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
-        GEMINI_MODEL
-      )}:generateContent`;
+      "https://generativelanguage.googleapis.com/v1beta/models/" +
+      encodeURIComponent(GEMINI_MODEL) +
+      ":generateContent";
 
     const response = await fetch(url, {
       method: "POST",
+
       headers: {
         "Content-Type": "application/json",
         "x-goog-api-key": GEMINI_API_KEY
       },
+
       body: JSON.stringify({
         system_instruction: {
           parts: [
@@ -207,7 +189,9 @@ app.post("/api/chat", async (req, res) => {
             }
           ]
         },
-        contents,
+
+        contents: contents,
+
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 4096
@@ -225,16 +209,29 @@ app.post("/api/chat", async (req, res) => {
 
       return res.status(response.status).json({
         error:
-          data?.error?.message ||
-          "Gemini API request failed."
+          data &&
+          data.error &&
+          data.error.message
+            ? data.error.message
+            : "Gemini API request failed."
       });
     }
 
     let answer = "";
 
-    for (const candidate of data?.candidates || []) {
-      for (const part of candidate?.content?.parts || []) {
-        if (typeof part?.text === "string") {
+    const candidates =
+      data.candidates || [];
+
+    for (const candidate of candidates) {
+      const parts =
+        candidate &&
+        candidate.content &&
+        candidate.content.parts
+          ? candidate.content.parts
+          : [];
+
+      for (const part of parts) {
+        if (typeof part.text === "string") {
           answer += part.text;
         }
       }
@@ -242,6 +239,7 @@ app.post("/api/chat", async (req, res) => {
 
     res.json({
       ok: true,
+
       answer:
         answer.trim() ||
         "I could not generate a response."
@@ -255,13 +253,14 @@ app.post("/api/chat", async (req, res) => {
 
     res.status(500).json({
       error:
-        error?.message ||
-        "Internal server error."
+        error && error.message
+          ? error.message
+          : "Internal server error."
     });
   }
 });
 
-app.get("*", (_req, res) => {
+app.get("*", function (_req, res) {
   res.sendFile(
     path.join(
       __dirname,
@@ -271,9 +270,10 @@ app.get("*", (_req, res) => {
   );
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, function () {
   console.log(
-    `NA MUSAMMAN AI GLOBAL running on port ${PORT}`
+    "NA MUSAMMAN AI GLOBAL running on port " +
+      PORT
   );
 });
 ```
