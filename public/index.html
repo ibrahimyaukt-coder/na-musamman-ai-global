@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NA MUSAMMAN AI GLOBAL</title>
+
+<style>
+:root{
+  --bg:#ffffff;
+  --text:#171717;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+  --sidebar:#f7f7f8;
+  --blue:#0b84ff;
+  --user:#eaf4ff;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  overflow:hidden;
+}
+
+.app{
+  display:flex;
+  height:100vh;
+}
+
+.sidebar{
+  width:270px;
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  padding:14px;
+}
+
+.brand{
+  font-weight:800;
+  font-size:17px;
+  padding:10px 8px 18px;
+}
+
+.brand span{
+  color:var(--blue);
+}
+
+.new{
+  border:1px solid var(--border);
+  background:white;
+  border-radius:10px;
+  padding:11px 13px;
+  font-weight:700;
+  cursor:pointer;
+  text-align:left;
+}
+
+.history-title{
+  font-size:12px;
+  color:var(--muted);
+  margin:22px 8px 8px;
+}
+
+.history{
+  overflow:auto;
+  flex:1;
+}
+
+.history button{
+  display:block;
+  width:100%;
+  border:0;
+  background:transparent;
+  text-align:left;
+  padding:9px;
+  border-radius:8px;
+  cursor:pointer;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.history button:hover{
+  background:#eaecef;
+}
+
+.side-bottom{
+  border-top:1px solid var(--border);
+  padding-top:10px;
+}
+
+.side-bottom button{
+  width:100%;
+  border:0;
+  background:transparent;
+  text-align:left;
+  padding:10px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+
+.top{
+  height:58px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  position:relative;
+}
+
+.menu{
+  display:none;
+  position:absolute;
+  left:12px;
+  border:0;
+  background:transparent;
+  font-size:23px;
+}
+
+.chat{
+  flex:1;
+  overflow:auto;
+}
+
+.welcome{
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:30px;
+}
+
+.welcome h1{
+  font-size:30px;
+  margin:0 0 10px;
+}
+
+.welcome p{
+  color:var(--muted);
+}
+
+.messages{
+  max-width:900px;
+  margin:auto;
+  padding:25px 18px 120px;
+}
+
+.msg{
+  display:flex;
+  gap:12px;
+  margin:18px 0;
+}
+
+.avatar{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  font-weight:800;
+  flex:none;
+}
+
+.ai{
+  background:#111;
+  color:white;
+}
+
+.me{
+  background:#dbeafe;
+  color:#075985;
+}
+
+.bubble{
+  max-width:calc(100% - 44px);
+  line-height:1.55;
+  white-space:pre-wrap;
+}
+
+.user-bubble{
+  background:var(--user);
+  padding:11px 14px;
+  border-radius:16px;
+}
+
+.composer-wrap{
+  position:fixed;
+  bottom:0;
+  left:270px;
+  right:0;
+  background:linear-gradient(
+    transparent,
+    var(--bg) 30%
+  );
+  padding:20px 18px 18px;
+}
+
+.composer{
+  max-width:900px;
+  margin:auto;
+  border:1px solid var(--border);
+  background:white;
+  border-radius:16px;
+  padding:8px;
+  box-shadow:0 4px 20px #0000000b;
+  display:flex;
+  align-items:flex-end;
+  gap:7px;
+}
+
+.icon{
+  border:0;
+  background:transparent;
+  font-size:20px;
+  cursor:pointer;
+  padding:9px;
+}
+
+.textarea{
+  flex:1;
+  border:0;
+  outline:0;
+  resize:none;
+  max-height:150px;
+  font:inherit;
+  padding:10px;
+}
+
+.send{
+  background:#111;
+  color:white;
+  border:0;
+  border-radius:10px;
+  width:40px;
+  height:40px;
+  cursor:pointer;
+  font-size:17px;
+}
+
+.preview{
+  max-width:900px;
+  margin:0 auto 7px;
+}
+
+.preview img{
+  max-height:100px;
+  border-radius:10px;
+}
+
+.hidden{
+  display:none;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:#0008;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.modal-box{
+  background:white;
+  border-radius:16px;
+  padding:22px;
+  max-width:420px;
+  width:100%;
+}
+
+.modal-box h2{
+  margin-top:0;
+}
+
+.close{
+  float:right;
+  border:0;
+  background:transparent;
+  font-size:22px;
+}
+
+.dark{
+  --bg:#171717;
+  --text:#f5f5f5;
+  --muted:#aaa;
+  --border:#383838;
+  --sidebar:#202020;
+  --user:#26384a;
+}
+
+.dark .composer,
+.dark .modal-box,
+.dark .new{
+  background:#222;
+  color:white;
+}
+
+.dark .user-bubble{
+  background:#26384a;
+}
+
+.dark .send{
+  background:white;
+  color:#111;
+}
+
+@media(max-width:700px){
+
+  .sidebar{
+    position:fixed;
+    z-index:5;
+    left:-280px;
+    top:0;
+    bottom:0;
+    transition:.2s;
+  }
+
+  .sidebar.open{
+    left:0;
+  }
+
+  .menu{
+    display:block;
+  }
+
+  .composer-wrap{
+    left:0;
+  }
+
+  .top{
+    padding-left:45px;
+  }
+
+  .welcome h1{
+    font-size:24px;
+  }
+
+  .messages{
+    padding-left:12px;
+    padding-right:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+
+<div class="brand">
+✦ <span>NA MUSAMMAN</span> AI GLOBAL
+</div>
+
+<button class="new" onclick="newChat()">
+＋ New chat
+</button>
+
+<div class="history-title">
+CHAT HISTORY
+</div>
+
+<div class="history" id="history"></div>
+
+<div class="side-bottom">
+
+<button onclick="openSettings()">
+⚙ Settings
+</button>
+
+<button onclick="clearHistory()">
+🗑 Clear history
+</button>
+
+</div>
+
+</aside>
+
+<main class="main">
+
+<header class="top">
+
+<button class="menu" onclick="toggleSidebar()">
+☰
+</button>
+
+✦ AI ASSISTANT
+
+</header>
+
+<section class="chat" id="chat">
+
+<div class="welcome" id="welcome">
+
+<div>
+
+<h1>
+How can I help you today?
+</h1>
+
+<p>
+NA MUSAMMAN AI GLOBAL — AI Assistant
+</p>
+
+</div>
+
+</div>
+
+<div class="messages" id="messages"></div>
+
+</section>
+
+<div class="composer-wrap">
+
+<div class="preview hidden" id="preview">
+
+<img id="previewImg">
+
+</div>
+
+<div class="composer">
+
+<button
+class="icon"
+title="Upload image"
+onclick="document.getElementById('file').click()">
+＋
+</button>
+
+<input
+id="file"
+type="file"
+accept="image/*"
+class="hidden">
+
+<textarea
+id="input"
+class="textarea"
+rows="1"
+placeholder="Message NA MUSAMMAN AI GLOBAL...">
+</textarea>
+
+<button
+class="icon"
+title="Voice input"
+onclick="voiceInput()">
+🎙
+</button>
+
+<button
+class="send"
+onclick="sendMessage()">
+➤
+</button>
+
+</div>
+
+</div>
+
+</main>
+</div>
+
+<div class="modal" id="settings">
+
+<div class="modal-box">
+
+<button class="close" onclick="closeSettings()">
+×
+</button>
+
+<h2>Settings</h2>
+
+<label>
+<input
+type="checkbox"
+id="darkMode"
+onchange="toggleDark()">
+Dark mode
+</label>
+
+<p style="color:var(--muted);font-size:13px;margin-top:18px">
+NA MUSAMMAN AI GLOBAL
+</p>
+
+</div>
+
+</div>
+
+<script>
+
+const input =
+document.getElementById("input");
+
+const messages =
+document.getElementById("messages");
+
+const welcome =
+document.getElementById("welcome");
+
+const historyBox =
+document.getElementById("history");
+
+const file =
+document.getElementById("file");
+
+const preview =
+document.getElementById("preview");
+
+const previewImg =
+document.getElementById("previewImg");
+
+let imageData = null;
+
+let chatHistory =
+JSON.parse(
+localStorage.getItem("nm_history") || "[]"
+);
+
+function save(){
+
+localStorage.setItem(
+"nm_history",
+JSON.stringify(chatHistory)
+);
+
+renderHistory();
+
+}
+
+function renderHistory(){
+
+historyBox.innerHTML="";
+
+chatHistory
+.slice()
+.reverse()
+.forEach((c,i)=>{
+
+const b =
+document.createElement("button");
+
+b.textContent =
+c.title || "New chat";
+
+b.onclick =
+()=>loadChat(
+chatHistory.length - 1 - i
+);
+
+historyBox.appendChild(b);
+
+});
+
+}
+
+function loadChat(i){
+
+const c = chatHistory[i];
+
+if(!c)return;
+
+messages.innerHTML="";
+
+welcome.style.display="none";
+
+c.messages.forEach(m =>
+addMessage(
+m.role,
+m.content
+)
+);
+
+}
+
+function newChat(){
+
+messages.innerHTML="";
+
+welcome.style.display="flex";
+
+input.value="";
+
+imageData=null;
+
+preview.classList.add("hidden");
+
+toggleSidebar(false);
+
+}
+
+function clearHistory(){
+
+if(confirm("Clear chat history?")){
+
+chatHistory=[];
+
+save();
+
+newChat();
+
+}
+
+}
+
+function toggleSidebar(v){
+
+document
+.getElementById("sidebar")
+.classList.toggle(
+"open",
+v
+);
+
+}
+
+function openSettings(){
+
+document
+.getElementById("settings")
+.style.display="flex";
+
+}
+
+function closeSettings(){
+
+document
+.getElementById("settings")
+.style.display="none";
+
+}
+
+function toggleDark(){
+
+document.body.classList.toggle(
+"dark",
+document.getElementById("darkMode").checked
+);
+
+localStorage.setItem(
+"dark",
+document.getElementById("darkMode").checked
+);
+
+}
+
+function addMessage(role,text){
+
+welcome.style.display="none";
+
+const row =
+document.createElement("div");
+
+row.className="msg";
+
+const av =
+document.createElement("div");
+
+av.className =
+"avatar " +
+(role==="assistant" ? "ai" : "me");
+
+av.textContent =
+role==="assistant" ? "AI" : "YOU";
+
+const bubble =
+document.createElement("div");
+
+bubble.className =
+"bubble " +
+(role==="user" ? "user-bubble" : "");
+
+bubble.textContent=text;
+
+row.append(
+av,
+bubble
+);
+
+messages.appendChild(row);
+
+document
+.getElementById("chat")
+.scrollTop =
+document
+.getElementById("chat")
+.scrollHeight;
+
+}
+
+file.onchange=()=>{
+
+const f=file.files[0];
+
+if(!f)return;
+
+const r=new FileReader();
+
+r.onload=()=>{
+
+imageData=r.result;
+
+previewImg.src=imageData;
+
+preview.classList.remove("hidden");
+
+};
+
+r.readAsDataURL(f);
+
+};
+
+input.addEventListener(
+"keydown",
+e=>{
+
+if(
+e.key==="Enter" &&
+!e.shiftKey
+){
+
+e.preventDefault();
+
+sendMessage();
+
+}
+
+});
+
+async function sendMessage(){
+
+const text =
+input.value.trim();
+
+if(!text && !imageData)
+return;
+
+const sentImage =
+imageData;
+
+input.value="";
+
+preview.classList.add("hidden");
+
+imageData=null;
+
+file.value="";
+
+addMessage(
+"user",
+text ||
+"Please analyze this image."
+);
+
+const current =
+chatHistory[
+chatHistory.length - 1
+] ||
+{
+title:
+(text || "Image request")
+.slice(0,40),
+messages:[]
+};
+
+current.messages.push({
+role:"user",
+content:
+text ||
+"Please analyze this image.",
+image:sentImage
+});
+
+if(!chatHistory.includes(current))
+chatHistory.push(current);
+
+save();
+
+const loading =
+document.createElement("div");
+
+loading.className="msg";
+
+loading.id="loading";
+
+loading.innerHTML=
+'<div class="avatar ai">AI</div>' +
+'<div class="bubble">Thinking…</div>';
+
+messages.appendChild(loading);
+
+try{
+
+const prior =
+current.messages
+.slice(0,-1)
+.map(m=>({
+
+role:m.role,
+
+content:m.content,
+
+image:m.image || null
+
+}));
+
+const r =
+await fetch(
+"/api/chat",
+{
+method:"POST",
+headers:{
+"Content-Type":
+"application/json"
+},
+body:JSON.stringify({
+
+message:text,
+
+image:sentImage,
+
+history:prior
+
+})
+}
+);
+
+const data =
+await r.json();
+
+document
+.getElementById("loading")
+?.remove();
+
+if(!r.ok)
+throw new Error(
+data.error ||
+"Request failed"
+);
+
+addMessage(
+"assistant",
+data.answer
+);
+
+current.messages.push({
+role:"assistant",
+content:data.answer
+});
+
+save();
+
+}
+catch(e){
+
+document
+.getElementById("loading")
+?.remove();
+
+addMessage(
+"assistant",
+"Error: " + e.message
+);
+
+}
+
+}
+
+function voiceInput(){
+
+const SR =
+window.SpeechRecognition ||
+window.webkitSpeechRecognition;
+
+if(!SR){
+
+alert(
+"Voice input is not supported by this browser."
+);
+
+return;
+
+}
+
+const r =
+new SR();
+
+r.lang="en-US";
+
+r.onresult=e=>{
+
+input.value =
+e.results[0][0].transcript;
+
+};
+
+r.start();
+
+}
+
+if(
+localStorage.getItem("dark")
+==="true"
+){
+
+document.body.classList.add("dark");
+
+document.getElementById(
+"darkMode"
+).checked=true;
+
+}
+
+renderHistory();
+
+</script>
+
+</body>
+</html>
