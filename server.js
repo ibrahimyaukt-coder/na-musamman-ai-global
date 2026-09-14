@@ -11,21 +11,10 @@ const __dirname = path.dirname(__filename);
 
 const PORT = Number(process.env.PORT || 3000);
 
-const GEMINI_API_KEY =
-  process.env.GEMINI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 const GEMINI_MODEL =
-  process.env.GEMINI_MODEL ||
-  "gemini-3.5-flash-lite";
-
-const IMAGE_MODEL =
-  process.env.GEMINI_IMAGE_MODEL ||
-  "gemini-3.1-flash-image";
-
-
-/* =========================
-   APP
-========================= */
+  process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
 app.use(
   express.json({
@@ -35,10 +24,7 @@ app.use(
 
 app.use(
   express.static(
-    path.join(
-      __dirname,
-      "public"
-    )
+    path.join(__dirname, "public")
   )
 );
 
@@ -74,15 +60,11 @@ You can help with:
 - Study assistance
 - Writing and editing
 
-When images are provided:
+When images are provided, carefully examine all images and follow the user's instructions.
 
-- Examine all provided images carefully.
-- Answer questions about them.
-- Compare them when requested.
-- Follow the user's written instructions.
-- Be concise when the user asks for a short answer.
+Be concise when the user asks for a short answer.
 
-Do not claim to have performed an action that you cannot perform.
+Do not claim to have performed an action that you cannot actually perform.
 `;
 
 
@@ -90,855 +72,331 @@ Do not claim to have performed an action that you cannot perform.
    STATUS
 ========================= */
 
-app.get(
-  "/api/status",
-  (_req, res) => {
+app.get("/api/status", (req, res) => {
 
-    res.json({
+  res.json({
+    ok: true,
+    app: "NA MUSAMMAN AI GLOBAL",
+    configured: Boolean(GEMINI_API_KEY),
+    model: GEMINI_MODEL
+  });
 
-      ok: true,
-
-      app:
-        "NA MUSAMMAN AI GLOBAL",
-
-      configured:
-        Boolean(
-          GEMINI_API_KEY
-        ),
-
-      chatModel:
-        GEMINI_MODEL,
-
-      imageModel:
-        IMAGE_MODEL
-
-    });
-
-  }
-);
+});
 
 
 /* =========================
    CHAT
 ========================= */
 
-app.post(
-  "/api/chat",
-  async (req, res) => {
+app.post("/api/chat", async (req, res) => {
 
-    try {
+  try {
 
-      if (!GEMINI_API_KEY) {
+    if (!GEMINI_API_KEY) {
 
-        return res
-          .status(500)
-          .json({
-            error:
-              "Gemini API key is not configured on the server."
-          });
+      return res.status(500).json({
+        error:
+          "Gemini API key is not configured on the server."
+      });
 
-      }
+    }
 
 
-      const {
-
-        message = "",
-
-        image = null,
-
-        images = [],
-
-        history = []
-
-      } = req.body || {};
+    const {
+      message = "",
+      image = null,
+      images = [],
+      history = []
+    } = req.body || {};
 
 
-      const contents = [];
+    const contents = [];
 
 
-      /* =====================
-         HISTORY
-      ===================== */
+    /* =====================
+       HISTORY
+    ===================== */
 
-      if (
-        Array.isArray(history)
-      ) {
+    if (Array.isArray(history)) {
 
-        for (
-          const item
-          of history.slice(-12)
+      for (const item of history.slice(-12)) {
+
+        if (
+          !item ||
+          !item.role ||
+          !item.content
         ) {
+          continue;
+        }
 
-          if (
-            !item ||
-            !item.role ||
-            !item.content
-          ) {
+
+        const role =
+          item.role === "assistant"
+            ? "model"
+            : "user";
+
+
+        const parts = [
+          {
+            text: String(item.content)
+          }
+        ];
+
+
+        const oldImages =
+          Array.isArray(item.images)
+            ? item.images
+            : item.image
+              ? [item.image]
+              : [];
+
+
+        for (const img of oldImages) {
+
+          if (typeof img !== "string") {
             continue;
           }
 
 
-          const role =
-            item.role ===
-            "assistant"
-              ? "model"
-              : "user";
-
-
-          const parts = [
-
-            {
-              text:
-                String(
-                  item.content
-                )
-            }
-
-          ];
-
-
-          const oldImages =
-            Array.isArray(
-              item.images
-            )
-              ? item.images
-              : (
-                  item.image
-                    ? [item.image]
-                    : []
-                );
-
-
-          for (
-            const img
-            of oldImages
-          ) {
-
-            if (
-              typeof img !==
-              "string"
-            ) {
-              continue;
-            }
-
-
-            const match =
-              img.match(
-                /^data:(image\/[^;]+);base64,(.+)$/
-              );
-
-
-            if (match) {
-
-              parts.push({
-
-                inline_data: {
-
-                  mime_type:
-                    match[1],
-
-                  data:
-                    match[2]
-
-                }
-
-              });
-
-            }
-
-          }
-
-
-          contents.push({
-
-            role,
-
-            parts
-
-          });
-
-        }
-
-      }
-
-
-      /* =====================
-         CURRENT MESSAGE
-      ===================== */
-
-      const currentParts = [];
-
-
-      if (message) {
-
-        currentParts.push({
-
-          text:
-            String(message)
-
-        });
-
-      }
-
-
-      let imageList =
-        Array.isArray(images)
-          ? [...images]
-          : [];
-
-
-      if (
-        image &&
-        typeof image ===
-          "string"
-      ) {
-
-        if (
-          !imageList.includes(
-            image
-          )
-        ) {
-
-          imageList.push(
-            image
-          );
-
-        }
-
-      }
-
-
-      for (
-        const img
-        of imageList
-      ) {
-
-        if (
-          typeof img !==
-          "string"
-        ) {
-          continue;
-        }
-
-
-        const match =
-          img.match(
+          const match = img.match(
             /^data:(image\/[^;]+);base64,(.+)$/
           );
 
 
-        if (!match) {
-          continue;
-        }
+          if (match) {
 
-
-        currentParts.push({
-
-          inline_data: {
-
-            mime_type:
-              match[1],
-
-            data:
-              match[2]
-
-          }
-
-        });
-
-      }
-
-
-      if (
-        !currentParts.length
-      ) {
-
-        currentParts.push({
-
-          text:
-            "Please respond to the user's request."
-
-        });
-
-      }
-
-
-      contents.push({
-
-        role:
-          "user",
-
-        parts:
-          currentParts
-
-      });
-
-
-      /* =====================
-         GEMINI CHAT
-      ===================== */
-
-      const url =
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
-          GEMINI_MODEL
-        )}:generateContent`;
-
-
-      const response =
-        await fetch(
-          url,
-          {
-
-            method:
-              "POST",
-
-            headers: {
-
-              "Content-Type":
-                "application/json",
-
-              "x-goog-api-key":
-                GEMINI_API_KEY
-
-            },
-
-            body:
-              JSON.stringify({
-
-                system_instruction: {
-
-                  parts: [
-
-                    {
-                      text:
-                        SYSTEM_PROMPT
-                    }
-
-                  ]
-
-                },
-
-                contents,
-
-                generationConfig: {
-
-                  temperature:
-                    0.7,
-
-                  maxOutputTokens:
-                    4096
-
-                }
-
-              })
-
-          }
-        );
-
-
-      const data =
-        await response.json();
-
-
-      if (
-        !response.ok
-      ) {
-
-        console.error(
-          "Gemini chat error:",
-          JSON.stringify(
-            data
-          )
-        );
-
-
-        return res
-          .status(
-            response.status
-          )
-          .json({
-
-            error:
-              data?.error?.message ||
-              "Gemini API request failed."
-
-          });
-
-      }
-
-
-      let answer = "";
-
-
-      for (
-        const candidate
-        of data?.candidates || []
-      ) {
-
-        for (
-          const part
-          of candidate?.content
-            ?.parts || []
-        ) {
-
-          if (
-            typeof part?.text ===
-            "string"
-          ) {
-
-            answer +=
-              part.text;
+            parts.push({
+              inline_data: {
+                mime_type: match[1],
+                data: match[2]
+              }
+            });
 
           }
 
         }
 
-      }
 
-
-      res.json({
-
-        ok: true,
-
-        answer:
-          answer.trim() ||
-          "I could not generate a response."
-
-      });
-
-
-    } catch (error) {
-
-      console.error(
-        "Chat server error:",
-        error
-      );
-
-
-      res
-        .status(500)
-        .json({
-
-          error:
-            error?.message ||
-            "Internal server error."
-
+        contents.push({
+          role,
+          parts
         });
+
+      }
 
     }
 
-  }
-);
+
+    /* =====================
+       CURRENT MESSAGE
+    ===================== */
+
+    const currentParts = [];
 
 
-/* =========================
-   ACTUAL IMAGE EDITING
-========================= */
+    if (message) {
 
-app.post(
-  "/api/edit-image",
-  async (req, res) => {
+      currentParts.push({
+        text: String(message)
+      });
 
-    try {
+    }
 
-      if (!GEMINI_API_KEY) {
 
-        return res
-          .status(500)
-          .json({
+    let imageList =
+      Array.isArray(images)
+        ? [...images]
+        : [];
 
-            error:
-              "Gemini API key is not configured on the server."
 
-          });
+    if (
+      image &&
+      typeof image === "string" &&
+      !imageList.includes(image)
+    ) {
 
+      imageList.push(image);
+
+    }
+
+
+    for (const img of imageList) {
+
+      if (typeof img !== "string") {
+        continue;
       }
 
 
-      const {
-
-        prompt = "",
-
-        images = [],
-
-        image = null
-
-      } = req.body || {};
+      const match = img.match(
+        /^data:(image\/[^;]+);base64,(.+)$/
+      );
 
 
-      /* =====================
-         VALIDATE PROMPT
-      ===================== */
-
-      if (
-        !prompt ||
-        !String(prompt).trim()
-      ) {
-
-        return res
-          .status(400)
-          .json({
-
-            error:
-              "Please enter what you want to change in the image."
-
-          });
-
+      if (!match) {
+        continue;
       }
 
 
-      /* =====================
-         IMAGE LIST
-      ===================== */
-
-      let imageList =
-        Array.isArray(images)
-          ? [...images]
-          : [];
-
-
-      if (
-        image &&
-        typeof image ===
-          "string"
-      ) {
-
-        if (
-          !imageList.includes(
-            image
-          )
-        ) {
-
-          imageList.push(
-            image
-          );
-
+      currentParts.push({
+        inline_data: {
+          mime_type: match[1],
+          data: match[2]
         }
+      });
 
-      }
+    }
 
 
-      if (
-        imageList.length === 0
-      ) {
+    if (!currentParts.length) {
 
-        return res
-          .status(400)
-          .json({
-
-            error:
-              "Please upload at least one image."
-
-          });
-
-      }
-
-
-      /* =====================
-         CONTENTS
-      ===================== */
-
-      const parts = [
-
-        {
-          text:
-            String(prompt).trim()
-        }
-
-      ];
-
-
-      for (
-        const img
-        of imageList
-      ) {
-
-        if (
-          typeof img !==
-          "string"
-        ) {
-          continue;
-        }
-
-
-        const match =
-          img.match(
-            /^data:(image\/[^;]+);base64,(.+)$/
-          );
-
-
-        if (!match) {
-          continue;
-        }
-
-
-        parts.push({
-
-          inline_data: {
-
-            mime_type:
-              match[1],
-
-            data:
-              match[2]
-
-          }
-
-        });
-
-      }
-
-
-      /* =====================
-         IMAGE GENERATION API
-      ===================== */
-
-      const url =
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
-          IMAGE_MODEL
-        )}:generateContent`;
-
-
-      const response =
-        await fetch(
-          url,
-          {
-
-            method:
-              "POST",
-
-            headers: {
-
-              "Content-Type":
-                "application/json",
-
-              "x-goog-api-key":
-                GEMINI_API_KEY
-
-            },
-
-            body:
-              JSON.stringify({
-
-                contents: [
-
-                  {
-                    role:
-                      "user",
-
-                    parts
-                  }
-
-                ],
-
-                generationConfig: {
-
-                  responseModalities: [
-                    "TEXT",
-                    "IMAGE"
-                  ],
-
-                  responseFormat: {
-
-                    image: {
-
-                      aspectRatio:
-                        "1:1",
-
-                      imageSize:
-                        "1K"
-
-                    }
-
-                  }
-
-                }
-
-              })
-
-          }
-        );
-
-
-      const data =
-        await response.json();
-
-
-      /* =====================
-         API ERROR
-      ===================== */
-
-      if (
-        !response.ok
-      ) {
-
-        console.error(
-          "Gemini image error:",
-          JSON.stringify(
-            data
-          )
-        );
-
-
-        return res
-          .status(
-            response.status
-          )
-          .json({
-
-            error:
-              data?.error?.message ||
-              "Image editing failed."
-
-          });
-
-      }
-
-
-      /* =====================
-         EXTRACT RESULT
-      ===================== */
-
-      let generatedImage =
-        null;
-
-      let generatedText =
-        "";
-
-
-      const candidates =
-        data?.candidates || [];
-
-
-      for (
-        const candidate
-        of candidates
-      ) {
-
-        const responseParts =
-          candidate?.content
-            ?.parts || [];
-
-
-        for (
-          const part
-          of responseParts
-        ) {
-
-          if (
-            typeof part?.text ===
-            "string"
-          ) {
-
-            generatedText +=
-              part.text;
-
-          }
-
-
-          if (
-            part?.inlineData?.data
-          ) {
-
-            const mimeType =
-              part.inlineData.mimeType ||
-              "image/png";
-
-
-            generatedImage =
-              `data:${mimeType};base64,${part.inlineData.data}`;
-
-          }
-
-        }
-
-      }
-
-
-      /* =====================
-         NO IMAGE
-      ===================== */
-
-      if (!generatedImage) {
-
-        return res
-          .status(500)
-          .json({
-
-            error:
-              generatedText ||
-              "The image model did not return an edited image."
-
-          });
-
-      }
-
-
-      /* =====================
-         RETURN IMAGE
-      ===================== */
-
-      res.json({
-
-        ok: true,
-
-        image:
-          generatedImage,
-
+      currentParts.push({
         text:
-          generatedText.trim()
-
+          "Please respond to the user's request."
       });
-
-
-    } catch (error) {
-
-      console.error(
-        "Image editing server error:",
-        error
-      );
-
-
-      res
-        .status(500)
-        .json({
-
-          error:
-            error?.message ||
-            "Internal image editing error."
-
-        });
 
     }
 
-  }
-);
+
+    contents.push({
+      role: "user",
+      parts: currentParts
+    });
 
 
-/* =========================
-   FRONTEND FALLBACK
-========================= */
+    /* =====================
+       GEMINI REQUEST
+    ===================== */
 
-app.get(
-  "*",
-  (_req, res) => {
+    const url =
+      "https://generativelanguage.googleapis.com/v1beta/models/" +
+      encodeURIComponent(GEMINI_MODEL) +
+      ":generateContent";
 
-    res.sendFile(
 
-      path.join(
-        __dirname,
-        "public",
-        "index.html"
-      )
+    const response = await fetch(
+      url,
+      {
+        method: "POST",
 
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": GEMINI_API_KEY
+        },
+
+        body: JSON.stringify({
+
+          system_instruction: {
+            parts: [
+              {
+                text: SYSTEM_PROMPT
+              }
+            ]
+          },
+
+          contents,
+
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 4096
+          }
+
+        })
+      }
     );
 
+
+    const data = await response.json();
+
+
+    if (!response.ok) {
+
+      console.error(
+        "Gemini error:",
+        JSON.stringify(data)
+      );
+
+
+      return res.status(response.status).json({
+        error:
+          data?.error?.message ||
+          "Gemini API request failed."
+      });
+
+    }
+
+
+    let answer = "";
+
+
+    for (
+      const candidate
+      of data?.candidates || []
+    ) {
+
+      for (
+        const part
+        of candidate?.content?.parts || []
+      ) {
+
+        if (
+          typeof part?.text === "string"
+        ) {
+
+          answer += part.text;
+
+        }
+
+      }
+
+    }
+
+
+    res.json({
+      ok: true,
+      answer:
+        answer.trim() ||
+        "I could not generate a response."
+    });
+
+
+  } catch (error) {
+
+    console.error(
+      "Server error:",
+      error
+    );
+
+
+    res.status(500).json({
+      error:
+        error?.message ||
+        "Internal server error."
+    });
+
   }
-);
+
+});
 
 
 /* =========================
-   START SERVER
+   FRONTEND
+========================= */
+
+app.get("*", (req, res) => {
+
+  res.sendFile(
+    path.join(
+      __dirname,
+      "public",
+      "index.html"
+    )
+  );
+
+});
+
+
+/* =========================
+   START
 ========================= */
 
 app.listen(
