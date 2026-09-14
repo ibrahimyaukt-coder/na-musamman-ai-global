@@ -18,9 +18,13 @@ const GEMINI_MODEL =
   process.env.GEMINI_MODEL ||
   "gemini-3.5-flash-lite";
 
+const IMAGE_MODEL =
+  process.env.GEMINI_IMAGE_MODEL ||
+  "gemini-3.1-flash-image";
+
 
 /* =========================
-   APP SETTINGS
+   APP
 ========================= */
 
 app.use(
@@ -70,23 +74,15 @@ You can help with:
 - Study assistance
 - Writing and editing
 
-When one or more images are provided:
+When images are provided:
 
-1. Carefully examine all images.
-2. Describe or analyze them when requested.
-3. Compare multiple images when requested.
-4. Follow the user's written instruction about the images.
-5. If the user asks for an image edit, explain clearly what can be done.
+- Examine all provided images carefully.
+- Answer questions about them.
+- Compare them when requested.
+- Follow the user's written instructions.
+- Be concise when the user asks for a short answer.
 
-Important:
-
-The current model can understand and analyze images, but it does not directly return a newly edited image file.
-
-Do not claim that you generated or edited an image file if you did not actually generate one.
-
-Be concise when the user asks for a short answer.
-
-Do not claim to have performed an action that you cannot actually perform.
+Do not claim to have performed an action that you cannot perform.
 `;
 
 
@@ -110,8 +106,11 @@ app.get(
           GEMINI_API_KEY
         ),
 
-      model:
-        GEMINI_MODEL
+      chatModel:
+        GEMINI_MODEL,
+
+      imageModel:
+        IMAGE_MODEL
 
     });
 
@@ -134,10 +133,8 @@ app.post(
         return res
           .status(500)
           .json({
-
             error:
               "Gemini API key is not configured on the server."
-
           });
 
       }
@@ -156,15 +153,11 @@ app.post(
       } = req.body || {};
 
 
-      /* =====================
-         CONTENTS
-      ===================== */
-
       const contents = [];
 
 
       /* =====================
-         CHAT HISTORY
+         HISTORY
       ===================== */
 
       if (
@@ -204,17 +197,33 @@ app.post(
           ];
 
 
-          /* Old single-image
-             compatibility */
+          const oldImages =
+            Array.isArray(
+              item.images
+            )
+              ? item.images
+              : (
+                  item.image
+                    ? [item.image]
+                    : []
+                );
 
-          if (
-            item.image &&
-            typeof item.image ===
-              "string"
+
+          for (
+            const img
+            of oldImages
           ) {
 
+            if (
+              typeof img !==
+              "string"
+            ) {
+              continue;
+            }
+
+
             const match =
-              item.image.match(
+              img.match(
                 /^data:(image\/[^;]+);base64,(.+)$/
               );
 
@@ -234,57 +243,6 @@ app.post(
                 }
 
               });
-
-            }
-
-          }
-
-
-          /* Multiple images
-             compatibility */
-
-          if (
-            Array.isArray(
-              item.images
-            )
-          ) {
-
-            for (
-              const img
-              of item.images
-            ) {
-
-              if (
-                typeof img !==
-                "string"
-              ) {
-                continue;
-              }
-
-
-              const match =
-                img.match(
-                  /^data:(image\/[^;]+);base64,(.+)$/
-                );
-
-
-              if (match) {
-
-                parts.push({
-
-                  inline_data: {
-
-                    mime_type:
-                      match[1],
-
-                    data:
-                      match[2]
-
-                  }
-
-                });
-
-              }
 
             }
 
@@ -323,25 +281,11 @@ app.post(
       }
 
 
-      /* =====================
-         MULTIPLE IMAGES
-      ===================== */
-
-      let imageList = [];
-
-
-      if (
+      let imageList =
         Array.isArray(images)
-      ) {
+          ? [...images]
+          : [];
 
-        imageList =
-          images;
-
-      }
-
-
-      /* Support old
-         single image */
 
       if (
         image &&
@@ -363,8 +307,6 @@ app.post(
 
       }
 
-
-      /* Add all images */
 
       for (
         const img
@@ -407,10 +349,6 @@ app.post(
       }
 
 
-      /* =====================
-         EMPTY MESSAGE
-      ===================== */
-
       if (
         !currentParts.length
       ) {
@@ -437,7 +375,7 @@ app.post(
 
 
       /* =====================
-         GEMINI API
+         GEMINI CHAT
       ===================== */
 
       const url =
@@ -472,10 +410,8 @@ app.post(
                   parts: [
 
                     {
-
                       text:
                         SYSTEM_PROMPT
-
                     }
 
                   ]
@@ -504,16 +440,12 @@ app.post(
         await response.json();
 
 
-      /* =====================
-         ERROR
-      ===================== */
-
       if (
         !response.ok
       ) {
 
         console.error(
-          "Gemini error:",
+          "Gemini chat error:",
           JSON.stringify(
             data
           )
@@ -534,10 +466,6 @@ app.post(
 
       }
 
-
-      /* =====================
-         RESPONSE TEXT
-      ===================== */
 
       let answer = "";
 
@@ -568,10 +496,6 @@ app.post(
       }
 
 
-      /* =====================
-         FINAL RESPONSE
-      ===================== */
-
       res.json({
 
         ok: true,
@@ -586,7 +510,7 @@ app.post(
     } catch (error) {
 
       console.error(
-        "Server error:",
+        "Chat server error:",
         error
       );
 
@@ -598,6 +522,390 @@ app.post(
           error:
             error?.message ||
             "Internal server error."
+
+        });
+
+    }
+
+  }
+);
+
+
+/* =========================
+   ACTUAL IMAGE EDITING
+========================= */
+
+app.post(
+  "/api/edit-image",
+  async (req, res) => {
+
+    try {
+
+      if (!GEMINI_API_KEY) {
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              "Gemini API key is not configured on the server."
+
+          });
+
+      }
+
+
+      const {
+
+        prompt = "",
+
+        images = [],
+
+        image = null
+
+      } = req.body || {};
+
+
+      /* =====================
+         VALIDATE PROMPT
+      ===================== */
+
+      if (
+        !prompt ||
+        !String(prompt).trim()
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Please enter what you want to change in the image."
+
+          });
+
+      }
+
+
+      /* =====================
+         IMAGE LIST
+      ===================== */
+
+      let imageList =
+        Array.isArray(images)
+          ? [...images]
+          : [];
+
+
+      if (
+        image &&
+        typeof image ===
+          "string"
+      ) {
+
+        if (
+          !imageList.includes(
+            image
+          )
+        ) {
+
+          imageList.push(
+            image
+          );
+
+        }
+
+      }
+
+
+      if (
+        imageList.length === 0
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Please upload at least one image."
+
+          });
+
+      }
+
+
+      /* =====================
+         CONTENTS
+      ===================== */
+
+      const parts = [
+
+        {
+          text:
+            String(prompt).trim()
+        }
+
+      ];
+
+
+      for (
+        const img
+        of imageList
+      ) {
+
+        if (
+          typeof img !==
+          "string"
+        ) {
+          continue;
+        }
+
+
+        const match =
+          img.match(
+            /^data:(image\/[^;]+);base64,(.+)$/
+          );
+
+
+        if (!match) {
+          continue;
+        }
+
+
+        parts.push({
+
+          inline_data: {
+
+            mime_type:
+              match[1],
+
+            data:
+              match[2]
+
+          }
+
+        });
+
+      }
+
+
+      /* =====================
+         IMAGE GENERATION API
+      ===================== */
+
+      const url =
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+          IMAGE_MODEL
+        )}:generateContent`;
+
+
+      const response =
+        await fetch(
+          url,
+          {
+
+            method:
+              "POST",
+
+            headers: {
+
+              "Content-Type":
+                "application/json",
+
+              "x-goog-api-key":
+                GEMINI_API_KEY
+
+            },
+
+            body:
+              JSON.stringify({
+
+                contents: [
+
+                  {
+                    role:
+                      "user",
+
+                    parts
+                  }
+
+                ],
+
+                generationConfig: {
+
+                  responseModalities: [
+                    "TEXT",
+                    "IMAGE"
+                  ],
+
+                  responseFormat: {
+
+                    image: {
+
+                      aspectRatio:
+                        "1:1",
+
+                      imageSize:
+                        "1K"
+
+                    }
+
+                  }
+
+                }
+
+              })
+
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      /* =====================
+         API ERROR
+      ===================== */
+
+      if (
+        !response.ok
+      ) {
+
+        console.error(
+          "Gemini image error:",
+          JSON.stringify(
+            data
+          )
+        );
+
+
+        return res
+          .status(
+            response.status
+          )
+          .json({
+
+            error:
+              data?.error?.message ||
+              "Image editing failed."
+
+          });
+
+      }
+
+
+      /* =====================
+         EXTRACT RESULT
+      ===================== */
+
+      let generatedImage =
+        null;
+
+      let generatedText =
+        "";
+
+
+      const candidates =
+        data?.candidates || [];
+
+
+      for (
+        const candidate
+        of candidates
+      ) {
+
+        const responseParts =
+          candidate?.content
+            ?.parts || [];
+
+
+        for (
+          const part
+          of responseParts
+        ) {
+
+          if (
+            typeof part?.text ===
+            "string"
+          ) {
+
+            generatedText +=
+              part.text;
+
+          }
+
+
+          if (
+            part?.inlineData?.data
+          ) {
+
+            const mimeType =
+              part.inlineData.mimeType ||
+              "image/png";
+
+
+            generatedImage =
+              `data:${mimeType};base64,${part.inlineData.data}`;
+
+          }
+
+        }
+
+      }
+
+
+      /* =====================
+         NO IMAGE
+      ===================== */
+
+      if (!generatedImage) {
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              generatedText ||
+              "The image model did not return an edited image."
+
+          });
+
+      }
+
+
+      /* =====================
+         RETURN IMAGE
+      ===================== */
+
+      res.json({
+
+        ok: true,
+
+        image:
+          generatedImage,
+
+        text:
+          generatedText.trim()
+
+      });
+
+
+    } catch (error) {
+
+      console.error(
+        "Image editing server error:",
+        error
+      );
+
+
+      res
+        .status(500)
+        .json({
+
+          error:
+            error?.message ||
+            "Internal image editing error."
 
         });
 
