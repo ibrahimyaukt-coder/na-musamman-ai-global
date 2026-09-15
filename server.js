@@ -18,131 +18,386 @@ app.use(
 
 
 /* =========================
-   STATUS
+   BASIC STATUS
 ========================= */
 
 app.get("/api/status", function (req, res) {
+
   res.json({
     ok: true,
     app: "NA MUSAMMAN AI GLOBAL",
     model: GEMINI_MODEL,
     geminiKeyConfigured: Boolean(GEMINI_API_KEY)
   });
+
 });
 
 
 /* =========================
-   GEMINI
+   AVAILABLE GEMINI MODELS
 ========================= */
 
-async function callGemini(message, images, history) {
+app.get("/api/models", async function (req, res) {
+
+  try {
+
+    if (!GEMINI_API_KEY) {
+
+      return res.status(500).json({
+        ok: false,
+        error:
+          "GEMINI_API_KEY is not configured."
+      });
+
+    }
+
+
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models",
+      {
+        method: "GET",
+
+        headers: {
+          "x-goog-api-key":
+            GEMINI_API_KEY
+        }
+
+      }
+    );
+
+
+    const rawText =
+      await response.text();
+
+
+    console.log(
+      "Models HTTP status:",
+      response.status
+    );
+
+
+    if (!response.ok) {
+
+      console.error(
+        "Models API error:",
+        rawText
+      );
+
+
+      return res.status(
+        response.status
+      ).json({
+
+        ok: false,
+
+        error:
+          rawText
+
+      });
+
+    }
+
+
+    let data;
+
+
+    try {
+
+      data =
+        JSON.parse(
+          rawText
+        );
+
+    } catch (error) {
+
+      return res.status(500).json({
+
+        ok: false,
+
+        error:
+          "Invalid response from Gemini models API."
+
+      });
+
+    }
+
+
+    const models =
+      (data.models || [])
+
+        .filter(
+          function (model) {
+
+            return (
+
+              Array.isArray(
+                model.supportedGenerationMethods
+              ) &&
+
+              model.supportedGenerationMethods.includes(
+                "generateContent"
+              )
+
+            );
+
+          }
+        )
+
+        .map(
+          function (model) {
+
+            return {
+
+              name:
+                model.name,
+
+              displayName:
+                model.displayName,
+
+              inputTokenLimit:
+                model.inputTokenLimit,
+
+              outputTokenLimit:
+                model.outputTokenLimit
+
+            };
+
+          }
+        );
+
+
+    return res.json({
+
+      ok: true,
+
+      currentModel:
+        GEMINI_MODEL,
+
+      models:
+        models
+
+    });
+
+
+  } catch (error) {
+
+    console.error(
+      "MODELS API ERROR:",
+      error
+    );
+
+
+    return res.status(500).json({
+
+      ok: false,
+
+      error:
+        error.message ||
+        "Unable to retrieve Gemini models."
+
+    });
+
+  }
+
+});
+
+
+/* =========================
+   GEMINI REQUEST
+========================= */
+
+async function callGemini(
+  message,
+  images,
+  history
+) {
 
   if (!GEMINI_API_KEY) {
+
     throw new Error(
       "GEMINI_API_KEY is not configured on Render."
     );
+
   }
+
 
   const contents = [];
 
-  /* Previous conversation */
+
+  /* =========================
+     PREVIOUS CONVERSATION
+  ========================= */
 
   if (Array.isArray(history)) {
 
-    for (const item of history) {
+    for (
+      const item of history
+    ) {
 
-      if (!item || !item.content) {
+      if (
+        !item ||
+        !item.content
+      ) {
         continue;
       }
+
 
       const role =
         item.role === "assistant"
           ? "model"
           : "user";
 
+
       const parts = [];
 
+
       parts.push({
-        text: String(item.content)
+
+        text:
+          String(
+            item.content
+          )
+
       });
+
 
       /* Previous images */
 
-      if (Array.isArray(item.images)) {
+      if (
+        Array.isArray(
+          item.images
+        )
+      ) {
 
-        for (const image of item.images) {
+        for (
+          const image
+          of item.images
+        ) {
 
-          if (typeof image !== "string") {
+          if (
+            typeof image !==
+            "string"
+          ) {
             continue;
           }
 
-          const match = image.match(
-            /^data:(image\/[^;]+);base64,(.+)$/
-          );
+
+          const match =
+            image.match(
+              /^data:(image\/[^;]+);base64,(.+)$/
+            );
+
 
           if (!match) {
             continue;
           }
 
+
           parts.push({
+
             inlineData: {
-              mimeType: match[1],
-              data: match[2]
+
+              mimeType:
+                match[1],
+
+              data:
+                match[2]
+
             }
+
           });
+
         }
+
       }
+
 
       if (parts.length) {
 
         contents.push({
-          role: role,
-          parts: parts
+
+          role:
+            role,
+
+          parts:
+            parts
+
         });
 
       }
+
     }
+
   }
 
 
-  /* Current message */
+  /* =========================
+     CURRENT MESSAGE
+  ========================= */
 
   const currentParts = [];
+
 
   if (message) {
 
     currentParts.push({
-      text: String(message)
+
+      text:
+        String(
+          message
+        )
+
     });
 
   }
 
 
-  /* Current images */
+  /* =========================
+     CURRENT IMAGES
+  ========================= */
 
   if (Array.isArray(images)) {
 
-    for (const image of images) {
+    for (
+      const image
+      of images
+    ) {
 
-      if (typeof image !== "string") {
+      if (
+        typeof image !==
+        "string"
+      ) {
         continue;
       }
 
-      const match = image.match(
-        /^data:(image\/[^;]+);base64,(.+)$/
-      );
+
+      const match =
+        image.match(
+          /^data:(image\/[^;]+);base64,(.+)$/
+        );
+
 
       if (!match) {
         continue;
       }
 
+
       currentParts.push({
+
         inlineData: {
-          mimeType: match[1],
-          data: match[2]
+
+          mimeType:
+            match[1],
+
+          data:
+            match[2]
+
         }
+
       });
+
     }
+
   }
 
 
@@ -156,41 +411,66 @@ async function callGemini(message, images, history) {
 
 
   contents.push({
-    role: "user",
-    parts: currentParts
+
+    role:
+      "user",
+
+    parts:
+      currentParts
+
   });
 
 
-  /* System instruction */
+  /* =========================
+     SYSTEM INSTRUCTION
+  ========================= */
 
   const systemInstruction = {
+
     parts: [
+
       {
+
         text:
+
           "You are NA MUSAMMAN AI GLOBAL, a helpful AI assistant. " +
+
           "Answer clearly, accurately and directly. " +
+
           "The user may communicate in Hausa, English, or other languages. " +
+
           "If the user writes Hausa, respond in simple, clear Hausa. " +
+
           "Help with questions, writing, reports, translation, study, " +
+
           "summaries, image understanding, and general tasks. " +
+
           "Do not claim to generate or edit an image unless an actual " +
+
           "image generation or editing tool has performed that action."
+
       }
+
     ]
+
   };
 
 
   const requestBody = {
 
-    systemInstruction: systemInstruction,
+    systemInstruction:
+      systemInstruction,
 
-    contents: contents,
+    contents:
+      contents,
 
     generationConfig: {
 
-      temperature: 0.7,
+      temperature:
+        0.7,
 
-      maxOutputTokens: 2048
+      maxOutputTokens:
+        2048
 
     }
 
@@ -198,8 +478,13 @@ async function callGemini(message, images, history) {
 
 
   const url =
+
     "https://generativelanguage.googleapis.com/v1beta/models/" +
-    encodeURIComponent(GEMINI_MODEL) +
+
+    encodeURIComponent(
+      GEMINI_MODEL
+    ) +
+
     ":generateContent";
 
 
@@ -209,41 +494,68 @@ async function callGemini(message, images, history) {
   );
 
 
-  /*
+  /* =========================
      FAST REQUEST
-     No long retry / no artificial delay
-  */
+  ========================= */
 
-  const controller = new AbortController();
+  const controller =
+    new AbortController();
 
-  const timeout = setTimeout(function () {
-    controller.abort();
-  }, 30000);
+
+  const timeout =
+    setTimeout(
+      function () {
+
+        controller.abort();
+
+      },
+      30000
+    );
 
 
   let response;
 
+
   try {
 
-    response = await fetch(
-      url,
-      {
-        method: "POST",
+    response =
+      await fetch(
 
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": GEMINI_API_KEY
-        },
+        url,
 
-        body: JSON.stringify(requestBody),
+        {
 
-        signal: controller.signal
-      }
-    );
+          method:
+            "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            "x-goog-api-key":
+              GEMINI_API_KEY
+
+          },
+
+          body:
+            JSON.stringify(
+              requestBody
+            ),
+
+          signal:
+            controller.signal
+
+        }
+
+      );
 
   } catch (error) {
 
-    if (error.name === "AbortError") {
+    if (
+      error.name ===
+      "AbortError"
+    ) {
 
       throw new Error(
         "Gemini is taking too long to respond. Please try again."
@@ -251,16 +563,21 @@ async function callGemini(message, images, history) {
 
     }
 
+
     throw error;
 
   } finally {
 
-    clearTimeout(timeout);
+    clearTimeout(
+      timeout
+    );
 
   }
 
 
-  const rawText = await response.text();
+  const rawText =
+    await response.text();
+
 
   console.log(
     "Gemini HTTP status:",
@@ -268,7 +585,9 @@ async function callGemini(message, images, history) {
   );
 
 
-  /* Gemini error */
+  /* =========================
+     GEMINI ERROR
+  ========================= */
 
   if (!response.ok) {
 
@@ -285,13 +604,19 @@ async function callGemini(message, images, history) {
     try {
 
       const errorData =
-        JSON.parse(rawText);
+        JSON.parse(
+          rawText
+        );
 
 
       if (
+
         errorData &&
+
         errorData.error &&
+
         errorData.error.message
+
       ) {
 
         errorMessage =
@@ -304,25 +629,34 @@ async function callGemini(message, images, history) {
       if (rawText) {
 
         errorMessage =
-          rawText.substring(0, 500);
+          rawText.substring(
+            0,
+            500
+          );
 
       }
 
     }
 
 
-    /*
-       Make high-demand message shorter
-    */
-
     const lower =
       errorMessage.toLowerCase();
 
 
     if (
-      lower.includes("high demand") ||
-      lower.includes("overloaded") ||
-      lower.includes("temporarily unavailable")
+
+      lower.includes(
+        "high demand"
+      ) ||
+
+      lower.includes(
+        "overloaded"
+      ) ||
+
+      lower.includes(
+        "temporarily unavailable"
+      )
+
     ) {
 
       throw new Error(
@@ -332,7 +666,9 @@ async function callGemini(message, images, history) {
     }
 
 
-    throw new Error(errorMessage);
+    throw new Error(
+      errorMessage
+    );
 
   }
 
@@ -348,9 +684,13 @@ async function callGemini(message, images, history) {
 
   let data;
 
+
   try {
 
-    data = JSON.parse(rawText);
+    data =
+      JSON.parse(
+        rawText
+      );
 
   } catch (error) {
 
@@ -359,6 +699,7 @@ async function callGemini(message, images, history) {
       rawText
     );
 
+
     throw new Error(
       "Gemini returned an invalid response."
     );
@@ -366,43 +707,68 @@ async function callGemini(message, images, history) {
   }
 
 
-  /* Extract answer */
+  /* =========================
+     EXTRACT ANSWER
+  ========================= */
 
-  let answer = "";
+  let answer =
+    "";
 
 
   if (
+
     data &&
-    Array.isArray(data.candidates)
+
+    Array.isArray(
+      data.candidates
+    )
+
   ) {
 
     for (
+
       const candidate
+
       of data.candidates
+
     ) {
 
       if (
+
         !candidate ||
+
         !candidate.content ||
+
         !Array.isArray(
           candidate.content.parts
         )
+
       ) {
+
         continue;
+
       }
 
 
       for (
+
         const part
+
         of candidate.content.parts
+
       ) {
 
         if (
+
           part &&
-          typeof part.text === "string"
+
+          typeof part.text ===
+            "string"
+
         ) {
 
-          answer += part.text;
+          answer +=
+            part.text;
 
         }
 
@@ -413,7 +779,8 @@ async function callGemini(message, images, history) {
   }
 
 
-  answer = answer.trim();
+  answer =
+    answer.trim();
 
 
   if (!answer) {
@@ -423,20 +790,32 @@ async function callGemini(message, images, history) {
 
 
     if (
+
       data &&
-      Array.isArray(data.candidates) &&
+
+      Array.isArray(
+        data.candidates
+      ) &&
+
       data.candidates[0] &&
+
       data.candidates[0].finishReason
+
     ) {
 
       reason +=
+
         " Finish reason: " +
-        data.candidates[0].finishReason;
+
+        data.candidates[0]
+          .finishReason;
 
     }
 
 
-    throw new Error(reason);
+    throw new Error(
+      reason
+    );
 
   }
 
@@ -452,7 +831,10 @@ async function callGemini(message, images, history) {
 
 app.post(
   "/api/chat",
-  async function (req, res) {
+  async function (
+    req,
+    res
+  ) {
 
     try {
 
@@ -461,23 +843,42 @@ app.post(
 
 
       const message =
-        typeof body.message === "string"
+
+        typeof body.message ===
+        "string"
+
           ? body.message.trim()
+
           : "";
 
 
-      let images = [];
+      let images =
+        [];
 
 
-      if (Array.isArray(body.images)) {
+      /* New frontend */
+
+      if (
+        Array.isArray(
+          body.images
+        )
+      ) {
 
         images =
           body.images.filter(
-            function (image) {
+            function (
+              image
+            ) {
 
               return (
-                typeof image === "string" &&
-                image.startsWith("data:image/")
+
+                typeof image ===
+                "string" &&
+
+                image.startsWith(
+                  "data:image/"
+                )
+
               );
 
             }
@@ -489,35 +890,65 @@ app.post(
       /* Old frontend support */
 
       if (
+
         !images.length &&
-        typeof body.image === "string" &&
-        body.image.startsWith("data:image/")
+
+        typeof body.image ===
+          "string" &&
+
+        body.image.startsWith(
+          "data:image/"
+        )
+
       ) {
 
-        images = [body.image];
+        images = [
+
+          body.image
+
+        ];
 
       }
 
 
       const history =
-        Array.isArray(body.history)
+
+        Array.isArray(
+          body.history
+        )
+
           ? body.history
+
           : [];
 
 
       console.log(
         "Chat request:",
         {
-          hasMessage: Boolean(message),
-          imageCount: images.length,
-          historyCount: history.length
+
+          hasMessage:
+            Boolean(
+              message
+            ),
+
+          imageCount:
+            images.length,
+
+          historyCount:
+            history.length
+
         }
       );
 
 
-      if (!message && !images.length) {
+      if (
+        !message &&
+        !images.length
+      ) {
 
-        return res.status(400).json({
+        return res.status(
+          400
+        ).json({
 
           ok: false,
 
@@ -531,17 +962,24 @@ app.post(
 
       const answer =
         await callGemini(
+
           message,
+
           images,
+
           history
+
         );
 
 
-      return res.status(200).json({
+      return res.status(
+        200
+      ).json({
 
         ok: true,
 
-        answer: answer
+        answer:
+          answer
 
       });
 
@@ -554,14 +992,19 @@ app.post(
       );
 
 
-      return res.status(500).json({
+      return res.status(
+        500
+      ).json({
 
         ok: false,
 
         error:
+
           error &&
           error.message
+
             ? error.message
+
             : "AI server error."
 
       });
@@ -578,14 +1021,23 @@ app.post(
 
 app.get(
   "*",
-  function (req, res) {
+  function (
+    req,
+    res
+  ) {
 
     res.sendFile(
+
       path.join(
+
         __dirname,
+
         "public",
+
         "index.html"
+
       )
+
     );
 
   }
@@ -593,28 +1045,45 @@ app.get(
 
 
 /* =========================
-   START
+   START SERVER
 ========================= */
 
 app.listen(
+
   PORT,
+
   "0.0.0.0",
+
   function () {
 
     console.log(
+
       "NA MUSAMMAN AI GLOBAL running on port " +
+
       PORT
+
     );
 
+
     console.log(
+
       "Gemini model:",
+
       GEMINI_MODEL
+
     );
 
+
     console.log(
+
       "Gemini API key configured:",
-      Boolean(GEMINI_API_KEY)
+
+      Boolean(
+        GEMINI_API_KEY
+      )
+
     );
 
   }
+
 );
