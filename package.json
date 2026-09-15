@@ -1,13 +1,13 @@
 {
   "name": "na-musamman-ai-global",
   "version": "1.0.0",
-  "private": true,
-  "type": "module",
+  "description": "NA MUSAMMAN AI GLOBAL - AI Assistant",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.4.5",
     "express": "^4.21.2"
   }
 }
