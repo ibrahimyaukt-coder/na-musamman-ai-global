@@ -7,81 +7,51 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL =
-  process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+  process.env.GEMINI_MODEL || "gemini-3.6-flash";
+
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 app.use(
-  express.json({
-    limit: "50mb"
-  })
-);
-
-app.use(
-  express.urlencoded({
-    extended: true,
-    limit: "50mb"
-  })
-);
-
-app.use(
-  express.static(
-    path.join(__dirname, "public")
-  )
+  express.static(path.join(__dirname, "public"))
 );
 
 
 /* =========================
-   BASIC STATUS
+   STATUS
 ========================= */
 
 app.get("/api/status", function (req, res) {
-
   res.json({
     ok: true,
     app: "NA MUSAMMAN AI GLOBAL",
     model: GEMINI_MODEL,
-    geminiKeyConfigured:
-      Boolean(GEMINI_API_KEY)
+    geminiKeyConfigured: Boolean(GEMINI_API_KEY)
   });
-
 });
 
 
 /* =========================
-   GEMINI REQUEST
+   GEMINI
 ========================= */
 
-async function callGemini(
-  message,
-  images,
-  history
-) {
+async function callGemini(message, images, history) {
 
   if (!GEMINI_API_KEY) {
-
     throw new Error(
       "GEMINI_API_KEY is not configured on Render."
     );
-
   }
-
 
   const contents = [];
 
-
-  /*
-     Add previous conversation
-  */
+  /* Previous conversation */
 
   if (Array.isArray(history)) {
 
-    for (
-      const item of history
-    ) {
+    for (const item of history) {
 
-      if (
-        !item ||
-        !item.content
-      ) {
+      if (!item || !item.content) {
         continue;
       }
 
@@ -90,160 +60,91 @@ async function callGemini(
           ? "model"
           : "user";
 
-
       const parts = [];
 
+      parts.push({
+        text: String(item.content)
+      });
 
-      if (item.content) {
+      /* Previous images */
 
-        parts.push({
-          text: String(
-            item.content
-          )
-        });
+      if (Array.isArray(item.images)) {
 
-      }
+        for (const image of item.images) {
 
-
-      /*
-         Include previous images
-         when available.
-      */
-
-      if (
-        Array.isArray(
-          item.images
-        )
-      ) {
-
-        for (
-          const image of item.images
-        ) {
-
-          if (
-            typeof image !== "string"
-          ) {
+          if (typeof image !== "string") {
             continue;
           }
 
-
-          const match =
-            image.match(
-              /^data:(image\/[^;]+);base64,(.+)$/
-            );
-
+          const match = image.match(
+            /^data:(image\/[^;]+);base64,(.+)$/
+          );
 
           if (!match) {
             continue;
           }
 
-
           parts.push({
-
             inlineData: {
-
-              mimeType:
-                match[1],
-
-              data:
-                match[2]
-
+              mimeType: match[1],
+              data: match[2]
             }
-
           });
-
         }
-
       }
-
 
       if (parts.length) {
 
         contents.push({
-
           role: role,
-
           parts: parts
-
         });
 
       }
-
     }
-
   }
 
 
-  /*
-     Current user message
-  */
+  /* Current message */
 
   const currentParts = [];
-
 
   if (message) {
 
     currentParts.push({
-
-      text:
-        String(message)
-
+      text: String(message)
     });
 
   }
 
 
-  /*
-     Current uploaded images
-  */
+  /* Current images */
 
   if (Array.isArray(images)) {
 
-    for (
-      const image of images
-    ) {
+    for (const image of images) {
 
-      if (
-        typeof image !== "string"
-      ) {
+      if (typeof image !== "string") {
         continue;
       }
 
-
-      const match =
-        image.match(
-          /^data:(image\/[^;]+);base64,(.+)$/
-        );
-
+      const match = image.match(
+        /^data:(image\/[^;]+);base64,(.+)$/
+      );
 
       if (!match) {
         continue;
       }
 
-
       currentParts.push({
-
         inlineData: {
-
-          mimeType:
-            match[1],
-
-          data:
-            match[2]
-
+          mimeType: match[1],
+          data: match[2]
         }
-
       });
-
     }
-
   }
 
-
-  /*
-     If there is no text and
-     no image, stop.
-  */
 
   if (!currentParts.length) {
 
@@ -255,53 +156,41 @@ async function callGemini(
 
 
   contents.push({
-
     role: "user",
-
-    parts:
-      currentParts
-
+    parts: currentParts
   });
 
 
+  /* System instruction */
+
   const systemInstruction = {
-
     parts: [
-
       {
-
         text:
           "You are NA MUSAMMAN AI GLOBAL, a helpful AI assistant. " +
-          "Answer clearly and accurately. " +
+          "Answer clearly, accurately and directly. " +
           "The user may communicate in Hausa, English, or other languages. " +
           "If the user writes Hausa, respond in simple, clear Hausa. " +
           "Help with questions, writing, reports, translation, study, " +
           "summaries, image understanding, and general tasks. " +
-          "Do not claim to have edited an image unless an image generation " +
-          "or editing tool actually performed the edit."
-
+          "Do not claim to generate or edit an image unless an actual " +
+          "image generation or editing tool has performed that action."
       }
-
     ]
-
   };
 
 
   const requestBody = {
 
-    systemInstruction:
-      systemInstruction,
+    systemInstruction: systemInstruction,
 
-    contents:
-      contents,
+    contents: contents,
 
     generationConfig: {
 
-      temperature:
-        0.7,
+      temperature: 0.7,
 
-      maxOutputTokens:
-        4096
+      maxOutputTokens: 2048
 
     }
 
@@ -310,47 +199,68 @@ async function callGemini(
 
   const url =
     "https://generativelanguage.googleapis.com/v1beta/models/" +
-    encodeURIComponent(
-      GEMINI_MODEL
-    ) +
+    encodeURIComponent(GEMINI_MODEL) +
     ":generateContent";
 
 
   console.log(
-    "Sending request to Gemini model:",
+    "Sending request to Gemini:",
     GEMINI_MODEL
   );
 
 
-  const response =
-    await fetch(
+  /*
+     FAST REQUEST
+     No long retry / no artificial delay
+  */
+
+  const controller = new AbortController();
+
+  const timeout = setTimeout(function () {
+    controller.abort();
+  }, 30000);
+
+
+  let response;
+
+  try {
+
+    response = await fetch(
       url,
       {
-
         method: "POST",
 
         headers: {
-
-          "Content-Type":
-            "application/json",
-
-          "x-goog-api-key":
-            GEMINI_API_KEY
-
+          "Content-Type": "application/json",
+          "x-goog-api-key": GEMINI_API_KEY
         },
 
-        body:
-          JSON.stringify(
-            requestBody
-          )
+        body: JSON.stringify(requestBody),
 
+        signal: controller.signal
       }
     );
 
+  } catch (error) {
 
-  const rawText =
-    await response.text();
+    if (error.name === "AbortError") {
 
+      throw new Error(
+        "Gemini is taking too long to respond. Please try again."
+      );
+
+    }
+
+    throw error;
+
+  } finally {
+
+    clearTimeout(timeout);
+
+  }
+
+
+  const rawText = await response.text();
 
   console.log(
     "Gemini HTTP status:",
@@ -358,10 +268,12 @@ async function callGemini(
   );
 
 
+  /* Gemini error */
+
   if (!response.ok) {
 
     console.error(
-      "Gemini error response:",
+      "Gemini error:",
       rawText
     );
 
@@ -369,12 +281,12 @@ async function callGemini(
     let errorMessage =
       "Gemini API request failed.";
 
+
     try {
 
       const errorData =
-        JSON.parse(
-          rawText
-        );
+        JSON.parse(rawText);
+
 
       if (
         errorData &&
@@ -387,24 +299,40 @@ async function callGemini(
 
       }
 
-    } catch (parseError) {
+    } catch (error) {
 
       if (rawText) {
 
         errorMessage =
-          rawText.substring(
-            0,
-            500
-          );
+          rawText.substring(0, 500);
 
       }
 
     }
 
 
-    throw new Error(
-      errorMessage
-    );
+    /*
+       Make high-demand message shorter
+    */
+
+    const lower =
+      errorMessage.toLowerCase();
+
+
+    if (
+      lower.includes("high demand") ||
+      lower.includes("overloaded") ||
+      lower.includes("temporarily unavailable")
+    ) {
+
+      throw new Error(
+        "Gemini is temporarily busy. Please try again."
+      );
+
+    }
+
+
+    throw new Error(errorMessage);
 
   }
 
@@ -420,18 +348,14 @@ async function callGemini(
 
   let data;
 
-
   try {
 
-    data =
-      JSON.parse(
-        rawText
-      );
+    data = JSON.parse(rawText);
 
   } catch (error) {
 
     console.error(
-      "Gemini returned invalid JSON:",
+      "Invalid Gemini JSON:",
       rawText
     );
 
@@ -442,18 +366,14 @@ async function callGemini(
   }
 
 
-  /*
-     Extract generated text
-  */
+  /* Extract answer */
 
   let answer = "";
 
 
   if (
     data &&
-    Array.isArray(
-      data.candidates
-    )
+    Array.isArray(data.candidates)
   ) {
 
     for (
@@ -482,8 +402,7 @@ async function callGemini(
           typeof part.text === "string"
         ) {
 
-          answer +=
-            part.text;
+          answer += part.text;
 
         }
 
@@ -494,47 +413,30 @@ async function callGemini(
   }
 
 
-  answer =
-    answer.trim();
+  answer = answer.trim();
 
 
   if (!answer) {
 
-    /*
-       Sometimes Gemini may return
-       a blocked/empty candidate.
-    */
-
     let reason =
       "Gemini returned no text.";
 
+
     if (
       data &&
-      Array.isArray(
-        data.candidates
-      ) &&
-      data.candidates[0]
+      Array.isArray(data.candidates) &&
+      data.candidates[0] &&
+      data.candidates[0].finishReason
     ) {
 
-      const candidate =
-        data.candidates[0];
-
-      if (
-        candidate.finishReason
-      ) {
-
-        reason +=
-          " Finish reason: " +
-          candidate.finishReason;
-
-      }
+      reason +=
+        " Finish reason: " +
+        data.candidates[0].finishReason;
 
     }
 
 
-    throw new Error(
-      reason
-    );
+    throw new Error(reason);
 
   }
 
@@ -567,22 +469,15 @@ app.post(
       let images = [];
 
 
-      if (
-        Array.isArray(
-          body.images
-        )
-      ) {
+      if (Array.isArray(body.images)) {
 
         images =
           body.images.filter(
-            function(image) {
+            function (image) {
 
               return (
-                typeof image ===
-                "string" &&
-                image.startsWith(
-                  "data:image/"
-                )
+                typeof image === "string" &&
+                image.startsWith("data:image/")
               );
 
             }
@@ -591,31 +486,21 @@ app.post(
       }
 
 
-      /*
-         Support old frontend
-         that sends "image".
-      */
+      /* Old frontend support */
 
       if (
         !images.length &&
-        typeof body.image ===
-          "string" &&
-        body.image.startsWith(
-          "data:image/"
-        )
+        typeof body.image === "string" &&
+        body.image.startsWith("data:image/")
       ) {
 
-        images = [
-          body.image
-        ];
+        images = [body.image];
 
       }
 
 
       const history =
-        Array.isArray(
-          body.history
-        )
+        Array.isArray(body.history)
           ? body.history
           : [];
 
@@ -623,22 +508,14 @@ app.post(
       console.log(
         "Chat request:",
         {
-          hasMessage:
-            Boolean(message),
-
-          imageCount:
-            images.length,
-
-          historyCount:
-            history.length
+          hasMessage: Boolean(message),
+          imageCount: images.length,
+          historyCount: history.length
         }
       );
 
 
-      if (
-        !message &&
-        !images.length
-      ) {
+      if (!message && !images.length) {
 
         return res.status(400).json({
 
@@ -664,8 +541,7 @@ app.post(
 
         ok: true,
 
-        answer:
-          answer
+        answer: answer
 
       });
 
@@ -677,12 +553,6 @@ app.post(
         error
       );
 
-
-      /*
-         Always return JSON.
-         This prevents the frontend
-         from getting an empty response.
-      */
 
       return res.status(500).json({
 
@@ -723,7 +593,7 @@ app.get(
 
 
 /* =========================
-   START SERVER
+   START
 ========================= */
 
 app.listen(
@@ -743,9 +613,7 @@ app.listen(
 
     console.log(
       "Gemini API key configured:",
-      Boolean(
-        GEMINI_API_KEY
-      )
+      Boolean(GEMINI_API_KEY)
     );
 
   }
