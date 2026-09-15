@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,90 +9,102 @@
   <style>
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
     }
 
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #ffffff;
-      color: #111827;
-      height: 100vh;
-      overflow: hidden;
+    :root {
+      --bg: #ffffff;
+      --sidebar: #f7f7f8;
+      --text: #171717;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --input: #f7f7f8;
+      --user: #eaf3ff;
+      --assistant: #ffffff;
+      --accent: #2563eb;
     }
 
     body.dark {
-      background: #111827;
-      color: #f9fafb;
+      --bg: #171717;
+      --sidebar: #202020;
+      --text: #f5f5f5;
+      --muted: #a1a1aa;
+      --border: #333333;
+      --input: #242424;
+      --user: #12335c;
+      --assistant: #171717;
+      --accent: #60a5fa;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
     }
 
     button,
-    input,
-    textarea {
-      font-family: inherit;
+    textarea,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
     }
 
     .app {
-      display: flex;
-      height: 100vh;
       width: 100%;
+      height: 100vh;
+      display: flex;
     }
 
     /* SIDEBAR */
 
     .sidebar {
       width: 270px;
-      background: #f7f7f8;
-      border-right: 1px solid #e5e7eb;
+      height: 100vh;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      padding: 16px;
-    }
-
-    body.dark .sidebar {
-      background: #171717;
-      border-color: #2d2d2d;
+      padding: 14px;
+      flex-shrink: 0;
     }
 
     .brand {
-      font-size: 19px;
+      font-size: 17px;
       font-weight: 700;
-      color: #075985;
-      margin-bottom: 22px;
-      line-height: 1.3;
+      padding: 12px 8px 16px;
+      line-height: 1.25;
     }
 
     .brand span {
-      color: #06b6d4;
+      color: var(--accent);
     }
 
     .new-chat {
       width: 100%;
-      border: 1px solid #d1d5db;
-      background: white;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
       border-radius: 10px;
-      padding: 12px;
-      cursor: pointer;
+      padding: 11px 13px;
       text-align: left;
-      font-size: 14px;
-      margin-bottom: 15px;
+      margin-bottom: 18px;
     }
 
     .new-chat:hover {
-      background: #f3f4f6;
-    }
-
-    body.dark .new-chat {
-      background: #222;
-      color: white;
-      border-color: #444;
+      background: var(--input);
     }
 
     .history-title {
+      color: var(--muted);
       font-size: 12px;
-      color: #6b7280;
-      margin: 10px 5px;
-      text-transform: uppercase;
+      margin: 4px 8px 8px;
     }
 
     .history {
@@ -104,116 +115,119 @@
     .history-item {
       padding: 10px;
       border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
       margin-bottom: 4px;
+      font-size: 14px;
+      cursor: pointer;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .history-item:hover {
-      background: #e5e7eb;
-    }
-
-    body.dark .history-item:hover {
-      background: #292929;
+      background: var(--input);
     }
 
     .sidebar-bottom {
-      border-top: 1px solid #e5e7eb;
-      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
     }
 
-    body.dark .sidebar-bottom {
-      border-color: #2d2d2d;
-    }
-
-    .settings-btn {
+    .side-button {
       width: 100%;
-      border: none;
-      background: transparent;
       padding: 10px;
-      cursor: pointer;
+      border: 0;
+      background: transparent;
+      color: var(--text);
       text-align: left;
       border-radius: 8px;
-      font-size: 14px;
     }
 
-    .settings-btn:hover {
-      background: #e5e7eb;
-    }
-
-    body.dark .settings-btn {
-      color: white;
-    }
-
-    body.dark .settings-btn:hover {
-      background: #292929;
+    .side-button:hover {
+      background: var(--input);
     }
 
     /* MAIN */
 
     .main {
       flex: 1;
+      min-width: 0;
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      min-width: 0;
+      background: var(--bg);
     }
 
     .topbar {
-      height: 60px;
-      border-bottom: 1px solid #e5e7eb;
+      height: 58px;
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      padding: 0 20px;
-      font-weight: 600;
+      padding: 0 18px;
+      gap: 12px;
+      flex-shrink: 0;
     }
 
-    body.dark .topbar {
-      border-color: #2d2d2d;
-    }
-
-    .mobile-brand {
+    .mobile-menu {
       display: none;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 22px;
     }
 
-    /* CHAT */
+    .top-title {
+      font-weight: 700;
+      flex: 1;
+    }
+
+    .status {
+      font-size: 12px;
+      color: var(--muted);
+    }
 
     .chat {
       flex: 1;
       overflow-y: auto;
-      padding: 25px 20px 150px;
+      padding: 24px 16px 150px;
     }
 
     .welcome {
       max-width: 760px;
-      margin: 70px auto;
+      margin: 80px auto 0;
       text-align: center;
     }
 
     .welcome-logo {
-      font-size: 30px;
-      margin-bottom: 15px;
-      color: #075985;
+      width: 64px;
+      height: 64px;
+      margin: auto;
+      border-radius: 18px;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 22px;
+      margin-bottom: 18px;
     }
 
     .welcome h1 {
       font-size: 28px;
-      margin-bottom: 12px;
+      margin: 0 0 10px;
     }
 
     .welcome p {
-      color: #6b7280;
-      line-height: 1.6;
+      color: var(--muted);
+      margin: 0;
     }
 
-    /* MESSAGE ROWS */
+    /* MESSAGES */
 
     .message-row {
-      display: flex;
       width: 100%;
-      margin-bottom: 18px;
+      display: flex;
+      margin: 14px 0;
     }
 
     .message-row.user {
@@ -225,244 +239,217 @@
     }
 
     .message {
-      max-width: min(760px, 82%);
-      padding: 12px 15px;
+      max-width: min(78%, 850px);
       border-radius: 16px;
-      line-height: 1.6;
+      padding: 12px 15px;
+      line-height: 1.55;
       white-space: pre-wrap;
-      word-wrap: break-word;
+      overflow-wrap: anywhere;
     }
 
-    .message-row.user .message {
-      background: #075985;
-      color: white;
+    .message.user {
+      background: var(--user);
       border-bottom-right-radius: 5px;
     }
 
-    .message-row.assistant .message {
-      background: #f1f5f9;
-      color: #111827;
+    .message.assistant {
+      background: var(--assistant);
+      border: 1px solid var(--border);
       border-bottom-left-radius: 5px;
-    }
-
-    body.dark .message-row.assistant .message {
-      background: #262626;
-      color: #f9fafb;
     }
 
     .message-images {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .message-images img {
-      width: 150px;
-      height: 120px;
+      width: 180px;
+      max-width: 100%;
+      max-height: 220px;
       object-fit: cover;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid var(--border);
     }
 
     /* COMPOSER */
 
     .composer-area {
       position: fixed;
-      bottom: 0;
       left: 270px;
       right: 0;
-      padding: 15px 20px 20px;
+      bottom: 0;
       background: linear-gradient(
         transparent,
-        rgba(255,255,255,0.96) 25%
+        var(--bg) 30%
       );
-    }
-
-    body.dark .composer-area {
-      background: linear-gradient(
-        transparent,
-        rgba(17,24,39,0.96) 25%
-      );
+      padding: 24px 18px 14px;
     }
 
     .composer {
-      max-width: 850px;
+      max-width: 900px;
       margin: auto;
-      border: 1px solid #d1d5db;
-      background: white;
-      border-radius: 18px;
-      padding: 10px;
-      box-shadow: 0 5px 25px rgba(0,0,0,0.08);
     }
-
-    body.dark .composer {
-      background: #1f2937;
-      border-color: #374151;
-    }
-
-    /* IMAGE PREVIEW */
 
     .preview {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 5px;
-      margin-bottom: 5px;
-    }
-
-    .preview.hidden {
       display: none;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
     }
 
     .preview-item {
       position: relative;
-      width: 75px;
-      height: 65px;
+      width: 72px;
+      height: 72px;
     }
 
     .preview-item img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 9px;
-      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      border: 1px solid var(--border);
     }
 
     .remove-image {
       position: absolute;
-      right: -5px;
-      top: -5px;
-      width: 20px;
-      height: 20px;
+      top: -6px;
+      right: -6px;
+      width: 22px;
+      height: 22px;
+      border: 0;
       border-radius: 50%;
-      border: none;
-      background: #ef4444;
+      background: #111;
       color: white;
-      cursor: pointer;
       font-size: 12px;
+      line-height: 22px;
+      padding: 0;
     }
 
-    .composer-row {
+    .input-box {
+      border: 1px solid var(--border);
+      background: var(--input);
+      border-radius: 16px;
       display: flex;
       align-items: flex-end;
-      gap: 8px;
+      gap: 7px;
+      padding: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    .tool-button {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      border-radius: 10px;
+      font-size: 20px;
+    }
+
+    .tool-button:hover {
+      background: var(--border);
     }
 
     textarea {
       flex: 1;
-      border: none;
-      outline: none;
+      min-height: 40px;
+      max-height: 160px;
       resize: none;
-      max-height: 140px;
-      min-height: 42px;
-      padding: 10px;
+      border: 0;
+      outline: 0;
       background: transparent;
-      color: inherit;
-      font-size: 15px;
+      color: var(--text);
+      padding: 10px 4px;
+      line-height: 1.4;
     }
 
-    .icon-btn {
-      width: 42px;
-      height: 42px;
-      border: none;
-      border-radius: 50%;
-      background: transparent;
-      cursor: pointer;
-      font-size: 20px;
-    }
-
-    .icon-btn:hover {
-      background: #f3f4f6;
-    }
-
-    body.dark .icon-btn:hover {
-      background: #374151;
-    }
-
-    .send-btn {
-      background: #075985;
+    .send-button {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      border: 0;
+      border-radius: 10px;
+      background: var(--accent);
       color: white;
+      font-size: 18px;
     }
 
-    .send-btn:hover {
-      background: #0369a1;
+    .send-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
-    .hidden {
-      display: none !important;
-    }
-
-    .status {
+    .composer-note {
       text-align: center;
       font-size: 11px;
-      color: #9ca3af;
-      margin-top: 7px;
+      color: var(--muted);
+      margin-top: 8px;
     }
 
-    /* SETTINGS */
-
-    .settings-panel {
-      position: fixed;
-      right: 20px;
-      bottom: 80px;
-      width: 270px;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 14px;
-      padding: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-      z-index: 50;
+    #file {
+      display: none;
     }
 
-    body.dark .settings-panel {
-      background: #1f2937;
-      border-color: #374151;
-    }
+    /* LOADING */
 
-    .settings-panel h3 {
-      margin-bottom: 15px;
-    }
-
-    .setting-line {
-      display: flex;
-      justify-content: space-between;
+    .typing {
+      display: inline-flex;
+      gap: 4px;
       align-items: center;
-      padding: 10px 0;
     }
 
-    .danger {
-      color: #dc2626;
-      cursor: pointer;
+    .typing span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: blink 1.2s infinite;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: .3s;
+    }
+
+    @keyframes blink {
+      0%, 80%, 100% {
+        opacity: .3;
+      }
+
+      40% {
+        opacity: 1;
+      }
     }
 
     /* MOBILE */
 
-    @media (max-width: 800px) {
+    @media (max-width: 760px) {
       .sidebar {
-        width: 0;
-        padding: 0;
-        overflow: hidden;
-        border: none;
+        position: fixed;
+        left: -280px;
+        top: 0;
+        z-index: 50;
+        transition: left .2s ease;
+      }
+
+      .sidebar.open {
+        left: 0;
+      }
+
+      .mobile-menu {
+        display: block;
       }
 
       .composer-area {
         left: 0;
-        padding: 10px;
-      }
-
-      .topbar {
-        justify-content: center;
-      }
-
-      .mobile-brand {
-        display: block;
-        font-size: 16px;
-        font-weight: 700;
-        color: #075985;
-      }
-
-      .chat {
         padding-left: 10px;
         padding-right: 10px;
       }
@@ -472,16 +459,11 @@
       }
 
       .welcome {
-        margin: 50px auto;
+        margin-top: 50px;
       }
 
       .welcome h1 {
         font-size: 23px;
-      }
-
-      .message-images img {
-        width: 120px;
-        height: 95px;
       }
     }
   </style>
@@ -491,12 +473,10 @@
 
 <div class="app">
 
-  <!-- SIDEBAR -->
-
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
 
     <div class="brand">
-      ✦ <span>NA MUSAMMAN</span><br>
+      <span>NA MUSAMMAN</span><br>
       AI GLOBAL
     </div>
 
@@ -511,168 +491,138 @@
     <div class="history" id="history"></div>
 
     <div class="sidebar-bottom">
-
-      <button class="settings-btn" id="settingsBtn">
-        ⚙ Settings
+      <button class="side-button" id="darkMode">
+        🌙 Dark mode
       </button>
-
     </div>
 
   </aside>
 
-  <!-- MAIN -->
-
   <main class="main">
 
     <header class="topbar">
-      <div class="mobile-brand">
-        ✦ NA MUSAMMAN AI GLOBAL
+
+      <button
+        class="mobile-menu"
+        id="mobileMenu"
+      >
+        ☰
+      </button>
+
+      <div class="top-title">
+        NA MUSAMMAN AI GLOBAL
       </div>
+
+      <div
+        class="status"
+        id="status"
+      >
+        AI Assistant
+      </div>
+
     </header>
 
-    <section class="chat" id="chat">
+    <section
+      class="chat"
+      id="chat"
+    >
 
-      <div class="welcome" id="welcome">
+      <div
+        class="welcome"
+        id="welcome"
+      >
 
         <div class="welcome-logo">
-          ✦
+          NM
         </div>
 
         <h1>
-          NA MUSAMMAN AI GLOBAL
+          How can I help you?
         </h1>
 
         <p>
-          AI Assistant for questions, education,
-          writing, translation, reports and image understanding.
+          Ask questions, write content, study, translate,
+          or upload images for analysis.
         </p>
 
       </div>
 
     </section>
 
+    <div class="composer-area">
+
+      <div class="composer">
+
+        <div
+          class="preview"
+          id="preview"
+        ></div>
+
+        <div class="input-box">
+
+          <button
+            class="tool-button"
+            id="uploadButton"
+            title="Upload images"
+          >
+            ＋
+          </button>
+
+          <input
+            id="file"
+            type="file"
+            accept="image/*"
+            multiple
+          >
+
+          <textarea
+            id="message"
+            placeholder="Message NA MUSAMMAN AI GLOBAL..."
+            rows="1"
+          ></textarea>
+
+          <button
+            class="tool-button"
+            id="voiceButton"
+            title="Voice input"
+          >
+            🎤
+          </button>
+
+          <button
+            class="send-button"
+            id="sendButton"
+            title="Send"
+          >
+            ➤
+          </button>
+
+        </div>
+
+        <div class="composer-note">
+          NA MUSAMMAN AI GLOBAL can make mistakes. Check important information.
+        </div>
+
+      </div>
+
+    </div>
+
   </main>
 
 </div>
 
-
-<!-- COMPOSER -->
-
-<div class="composer-area">
-
-  <div class="composer">
-
-    <div
-      id="preview"
-      class="preview hidden">
-    </div>
-
-    <div class="composer-row">
-
-      <button
-        class="icon-btn"
-        id="uploadBtn"
-        title="Upload images">
-        ＋
-      </button>
-
-      <input
-        id="file"
-        type="file"
-        accept="image/*"
-        multiple
-        class="hidden">
-
-      <textarea
-        id="message"
-        placeholder="Message NA MUSAMMAN AI GLOBAL..."
-        rows="1"></textarea>
-
-      <button
-        class="icon-btn"
-        id="micBtn"
-        title="Voice input">
-        🎤
-      </button>
-
-      <button
-        class="icon-btn send-btn"
-        id="sendBtn"
-        title="Send">
-        ➤
-      </button>
-
-    </div>
-
-    <div class="status">
-      NA MUSAMMAN AI GLOBAL • AI Assistant
-    </div>
-
-  </div>
-
-</div>
-
-
-<!-- SETTINGS -->
-
-<div
-  id="settingsPanel"
-  class="settings-panel hidden">
-
-  <h3>Settings</h3>
-
-  <div class="setting-line">
-    <span>Dark mode</span>
-
-    <input
-      type="checkbox"
-      id="darkMode">
-  </div>
-
-  <div class="setting-line">
-    <span
-      class="danger"
-      id="clearHistory">
-      Clear chat history
-    </span>
-  </div>
-
-</div>
-
-
 <script>
-
-  /* =========================
-     STATE
-  ========================= */
-
-  let imageData = [];
-
-  let messages = [];
-
-  let chats = JSON.parse(
-    localStorage.getItem("naMusammanChats") || "[]"
-  );
-
-
-  /* =========================
-     ELEMENTS
-  ========================= */
-
-  const chat =
-    document.getElementById("chat");
-
-  const welcome =
-    document.getElementById("welcome");
+  const chat = document.getElementById("chat");
+  const welcome = document.getElementById("welcome");
 
   const messageInput =
     document.getElementById("message");
 
-  const sendBtn =
-    document.getElementById("sendBtn");
+  const sendButton =
+    document.getElementById("sendButton");
 
-  const uploadBtn =
-    document.getElementById("uploadBtn");
+  const uploadButton =
+    document.getElementById("uploadButton");
 
   const fileInput =
     document.getElementById("file");
@@ -683,90 +633,165 @@
   const historyBox =
     document.getElementById("history");
 
-  const newChat =
+  const newChatButton =
     document.getElementById("newChat");
 
-  const micBtn =
-    document.getElementById("micBtn");
-
-  const settingsBtn =
-    document.getElementById("settingsBtn");
-
-  const settingsPanel =
-    document.getElementById("settingsPanel");
-
-  const darkMode =
+  const darkModeButton =
     document.getElementById("darkMode");
 
-  const clearHistory =
-    document.getElementById("clearHistory");
+  const voiceButton =
+    document.getElementById("voiceButton");
 
+  const statusBox =
+    document.getElementById("status");
 
-  /* =========================
-     DARK MODE
-  ========================= */
+  const sidebar =
+    document.getElementById("sidebar");
 
-  const savedDark =
-    localStorage.getItem("naMusammanDark");
+  const mobileMenu =
+    document.getElementById("mobileMenu");
 
-  if (savedDark === "true") {
-    document.body.classList.add("dark");
-    darkMode.checked = true;
-  }
+  let imageData = [];
 
-  darkMode.addEventListener("change", () => {
+  let conversation = [];
 
-    document.body.classList.toggle(
-      "dark",
-      darkMode.checked
-    );
+  let savedChats = [];
 
-    localStorage.setItem(
-      "naMusammanDark",
-      darkMode.checked
-    );
+  let isSending = false;
 
-  });
+  /* STORAGE */
 
+  function loadStorage() {
+    try {
+      const saved =
+        localStorage.getItem(
+          "na_musamman_chats"
+        );
 
-  /* =========================
-     SETTINGS
-  ========================= */
+      if (saved) {
+        savedChats = JSON.parse(saved);
+      }
 
-  settingsBtn.addEventListener("click", () => {
+      const theme =
+        localStorage.getItem(
+          "na_musamman_theme"
+        );
 
-    settingsPanel.classList.toggle("hidden");
-
-  });
-
-
-  clearHistory.addEventListener("click", () => {
-
-    localStorage.removeItem("naMusammanChats");
-
-    chats = [];
+      if (theme === "dark") {
+        document.body.classList.add("dark");
+      }
+    } catch (error) {
+      console.log(error);
+    }
 
     renderHistory();
+  }
 
-    startNewChat();
+  function saveStorage() {
+    try {
+      localStorage.setItem(
+        "na_musamman_chats",
+        JSON.stringify(savedChats)
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
-  });
+  /* HISTORY */
 
+  function renderHistory() {
+    historyBox.innerHTML = "";
 
-  /* =========================
-     NEW CHAT
-  ========================= */
+    savedChats.forEach(function (item, index) {
 
-  newChat.addEventListener(
-    "click",
-    startNewChat
-  );
+      const div =
+        document.createElement("div");
 
+      div.className = "history-item";
+
+      div.textContent =
+        item.title || "New chat";
+
+      div.onclick = function () {
+        openSavedChat(index);
+      };
+
+      historyBox.appendChild(div);
+    });
+  }
+
+  function saveCurrentChat() {
+
+    if (!conversation.length) {
+      return;
+    }
+
+    const firstUser =
+      conversation.find(
+        function (item) {
+          return item.role === "user";
+        }
+      );
+
+    const title =
+      firstUser &&
+      firstUser.content
+        ? firstUser.content.substring(0, 45)
+        : "New chat";
+
+    savedChats.unshift({
+      title: title,
+      messages: conversation
+    });
+
+    if (savedChats.length > 30) {
+      savedChats =
+        savedChats.slice(0, 30);
+    }
+
+    saveStorage();
+    renderHistory();
+  }
+
+  function openSavedChat(index) {
+
+    const saved =
+      savedChats[index];
+
+    if (!saved) {
+      return;
+    }
+
+    conversation =
+      Array.isArray(saved.messages)
+        ? saved.messages
+        : [];
+
+    chat.innerHTML = "";
+
+    conversation.forEach(function (item) {
+      addMessageToScreen(
+        item.role,
+        item.content || "",
+        item.images || []
+      );
+    });
+
+    sidebar.classList.remove("open");
+
+    scrollToBottom();
+  }
+
+  /* NEW CHAT */
 
   function startNewChat() {
 
-    messages = [];
+    if (conversation.length) {
+      saveCurrentChat();
+    }
 
+    conversation = [];
     imageData = [];
 
     chat.innerHTML = "";
@@ -775,10 +800,14 @@
       createWelcome()
     );
 
-    clearPreview();
+    renderPreview();
 
+    messageInput.value = "";
+
+    autoResize();
+
+    sidebar.classList.remove("open");
   }
-
 
   function createWelcome() {
 
@@ -787,44 +816,162 @@
 
     div.className = "welcome";
 
+    div.id = "welcome";
+
     div.innerHTML = `
-      <div class="welcome-logo">✦</div>
-
-      <h1>NA MUSAMMAN AI GLOBAL</h1>
-
+      <div class="welcome-logo">NM</div>
+      <h1>How can I help you?</h1>
       <p>
-        AI Assistant for questions, education,
-        writing, translation, reports and image understanding.
+        Ask questions, write content, study, translate,
+        or upload images for analysis.
       </p>
     `;
 
     return div;
-
   }
 
+  /* SCREEN MESSAGES */
 
-  /* =========================
-     IMAGE UPLOAD
-  ========================= */
+  function addMessageToScreen(
+    role,
+    text,
+    images
+  ) {
 
-  uploadBtn.addEventListener(
-    "click",
-    () => fileInput.click()
-  );
+    if (welcome &&
+        welcome.parentNode) {
+      welcome.remove();
+    }
 
+    const row =
+      document.createElement("div");
 
-  fileInput.addEventListener(
-    "change",
-    async () => {
+    row.className =
+      "message-row " +
+      (role === "user"
+        ? "user"
+        : "assistant");
+
+    const bubble =
+      document.createElement("div");
+
+    bubble.className =
+      "message " +
+      (role === "user"
+        ? "user"
+        : "assistant");
+
+    if (
+      Array.isArray(images) &&
+      images.length
+    ) {
+
+      const imageContainer =
+        document.createElement("div");
+
+      imageContainer.className =
+        "message-images";
+
+      images.forEach(function (src) {
+
+        const img =
+          document.createElement("img");
+
+        img.src = src;
+
+        img.alt = "Uploaded image";
+
+        imageContainer.appendChild(img);
+      });
+
+      bubble.appendChild(
+        imageContainer
+      );
+    }
+
+    if (text) {
+
+      const textDiv =
+        document.createElement("div");
+
+      textDiv.textContent = text;
+
+      bubble.appendChild(
+        textDiv
+      );
+    }
+
+    row.appendChild(bubble);
+
+    chat.appendChild(row);
+
+    scrollToBottom();
+  }
+
+  function addTypingMessage() {
+
+    const row =
+      document.createElement("div");
+
+    row.className =
+      "message-row assistant";
+
+    row.id = "typingMessage";
+
+    const bubble =
+      document.createElement("div");
+
+    bubble.className =
+      "message assistant";
+
+    bubble.innerHTML = `
+      <div class="typing">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    `;
+
+    row.appendChild(bubble);
+
+    chat.appendChild(row);
+
+    scrollToBottom();
+  }
+
+  function removeTypingMessage() {
+
+    const item =
+      document.getElementById(
+        "typingMessage"
+      );
+
+    if (item) {
+      item.remove();
+    }
+  }
+
+  function scrollToBottom() {
+    setTimeout(function () {
+      chat.scrollTop =
+        chat.scrollHeight;
+    }, 30);
+  }
+
+  /* IMAGE */
+
+  uploadButton.onclick =
+    function () {
+      fileInput.click();
+    };
+
+  fileInput.onchange =
+    async function (event) {
 
       const files =
-        Array.from(fileInput.files || []);
-
-      if (!files.length) return;
-
-      imageData = [];
-
-      clearPreview();
+        Array.from(
+          event.target.files || []
+        );
 
       for (const file of files) {
 
@@ -832,170 +979,158 @@
           continue;
         }
 
-        const data =
-          await resizeImage(file);
+        try {
 
-        imageData.push(data);
+          const resized =
+            await resizeImage(file);
 
+          imageData.push(resized);
+
+        } catch (error) {
+
+          console.error(
+            "Image error:",
+            error
+          );
+        }
       }
 
       renderPreview();
 
       fileInput.value = "";
-
-    }
-  );
-
-
-  /* =========================
-     RESIZE IMAGE
-  ========================= */
+    };
 
   function resizeImage(file) {
 
-    return new Promise((resolve) => {
+    return new Promise(
+      function (resolve, reject) {
 
-      const reader =
-        new FileReader();
+        const reader =
+          new FileReader();
 
-      reader.onload = () => {
+        reader.onload =
+          function () {
 
-        const img =
-          new Image();
+            const img =
+              new Image();
 
-        img.onload = () => {
+            img.onload =
+              function () {
 
-          const maxSize = 1400;
+                const maxSize =
+                  1400;
 
-          let width =
-            img.width;
+                let width =
+                  img.width;
 
-          let height =
-            img.height;
+                let height =
+                  img.height;
 
-          if (width > maxSize) {
+                if (
+                  width > maxSize ||
+                  height > maxSize
+                ) {
 
-            height =
-              Math.round(
-                height *
-                maxSize /
-                width
-              );
+                  const scale =
+                    Math.min(
+                      maxSize / width,
+                      maxSize / height
+                    );
 
-            width = maxSize;
+                  width =
+                    Math.round(
+                      width * scale
+                    );
 
-          }
+                  height =
+                    Math.round(
+                      height * scale
+                    );
+                }
 
-          if (height > maxSize) {
+                const canvas =
+                  document.createElement(
+                    "canvas"
+                  );
 
-            width =
-              Math.round(
-                width *
-                maxSize /
-                height
-              );
+                canvas.width =
+                  width;
 
-            height = maxSize;
+                canvas.height =
+                  height;
 
-          }
+                const ctx =
+                  canvas.getContext(
+                    "2d"
+                  );
 
-          const canvas =
-            document.createElement("canvas");
+                ctx.drawImage(
+                  img,
+                  0,
+                  0,
+                  width,
+                  height
+                );
 
-          canvas.width = width;
-          canvas.height = height;
+                resolve(
+                  canvas.toDataURL(
+                    "image/jpeg",
+                    0.82
+                  )
+                );
+              };
 
-          const ctx =
-            canvas.getContext("2d");
+            img.onerror =
+              reject;
 
-          ctx.drawImage(
-            img,
-            0,
-            0,
-            width,
-            height
-          );
+            img.src =
+              reader.result;
+          };
 
-          resolve(
-            canvas.toDataURL(
-              "image/jpeg",
-              0.82
-            )
-          );
+        reader.onerror =
+          reject;
 
-        };
-
-        img.src =
-          reader.result;
-
-      };
-
-      reader.readAsDataURL(file);
-
-    });
-
+        reader.readAsDataURL(file);
+      }
+    );
   }
-
-
-  /* =========================
-     IMAGE PREVIEW
-  ========================= */
 
   function renderPreview() {
 
     preview.innerHTML = "";
 
     if (!imageData.length) {
-
-      preview.classList.add(
-        "hidden"
-      );
-
+      preview.style.display = "none";
       return;
-
     }
 
-    preview.classList.remove(
-      "hidden"
-    );
+    preview.style.display = "flex";
 
     imageData.forEach(
-      (src, index) => {
+      function (src, index) {
 
         const item =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
         item.className =
           "preview-item";
 
-        item.innerHTML = `
-          <img src="${src}">
-          <button
-            class="remove-image"
-            data-index="${index}">
-            ×
-          </button>
-        `;
+        const img =
+          document.createElement("img");
 
-        preview.appendChild(item);
+        img.src = src;
 
-      }
-    );
+        const remove =
+          document.createElement("button");
 
-    document
-      .querySelectorAll(".remove-image")
-      .forEach(button => {
+        remove.className =
+          "remove-image";
 
-        button.addEventListener(
-          "click",
-          () => {
+        remove.textContent =
+          "×";
 
-            const index =
-              Number(
-                button.dataset.index
-              );
+        remove.onclick =
+          function () {
 
             imageData.splice(
               index,
@@ -1003,41 +1138,24 @@
             );
 
             renderPreview();
+          };
 
-          }
-        );
+        item.appendChild(img);
+        item.appendChild(remove);
 
-      });
-
-  }
-
-
-  function clearPreview() {
-
-    imageData = [];
-
-    preview.innerHTML = "";
-
-    preview.classList.add(
-      "hidden"
+        preview.appendChild(item);
+      }
     );
-
   }
 
+  /* SEND */
 
-  /* =========================
-     SEND MESSAGE
-  ========================= */
-
-  sendBtn.addEventListener(
-    "click",
-    sendMessage
-  );
-
+  sendButton.onclick =
+    sendMessage;
 
   messageInput.addEventListener(
     "keydown",
-    (event) => {
+    function (event) {
 
       if (
         event.key === "Enter" &&
@@ -1047,14 +1165,15 @@
         event.preventDefault();
 
         sendMessage();
-
       }
-
     }
   );
 
-
   async function sendMessage() {
+
+    if (isSending) {
+      return;
+    }
 
     const text =
       messageInput.value.trim();
@@ -1066,75 +1185,46 @@
       return;
     }
 
+    isSending = true;
 
-    if (welcome) {
-      welcome.remove();
-    }
+    sendButton.disabled = true;
 
+    const sentText = text;
 
-    const userText =
-      text ||
-      "Please analyze these images.";
-
-
-    const currentImages =
+    const sentImages =
       [...imageData];
-
-
-    addMessage(
-      "user",
-      userText,
-      currentImages
-    );
-
-
-    messages.push({
-
-      role: "user",
-
-      content: userText,
-
-      images: currentImages
-
-    });
-
 
     messageInput.value = "";
 
-    clearPreview();
+    imageData = [];
 
+    renderPreview();
 
-    const loading =
-      addMessage(
-        "assistant",
-        "Thinking..."
-      );
+    autoResize();
 
+    addMessageToScreen(
+      "user",
+      sentText,
+      sentImages
+    );
+
+    conversation.push({
+      role: "user",
+      content: sentText,
+      images: sentImages
+    });
+
+    addTypingMessage();
+
+    statusBox.textContent =
+      "Thinking...";
 
     try {
-
-      const history =
-        messages
-          .slice(-12)
-          .map(item => ({
-
-            role:
-              item.role,
-
-            content:
-              item.content,
-
-            image:
-              item.images?.[0] || null
-
-          }));
-
 
       const response =
         await fetch(
           "/api/chat",
           {
-
             method: "POST",
 
             headers: {
@@ -1143,366 +1233,240 @@
             },
 
             body: JSON.stringify({
-
-              message:
-                userText,
-
-              images:
-                currentImages,
-
+              message: sentText,
+              images: sentImages,
               image:
-                currentImages[0] ||
-                null,
-
-              history
-
+                sentImages.length
+                  ? sentImages[0]
+                  : null,
+              history:
+                conversation.slice(
+                  0,
+                  -1
+                )
             })
-
           }
         );
-
 
       const data =
         await response.json();
 
-
-      loading.remove();
-
+      removeTypingMessage();
 
       if (!response.ok) {
 
         throw new Error(
-          data?.error ||
-          "Request failed."
+          data.error ||
+          "Failed to send message."
         );
-
       }
 
-
       const answer =
-        data?.answer ||
+        data.answer ||
         "I could not generate a response.";
 
-
-      addMessage(
+      addMessageToScreen(
         "assistant",
-        answer
+        answer,
+        []
       );
 
-
-      messages.push({
-
+      conversation.push({
         role: "assistant",
-
         content: answer,
-
         images: []
-
       });
 
-
-      saveChat();
+      statusBox.textContent =
+        "AI Assistant";
 
     } catch (error) {
 
-      loading.remove();
+      removeTypingMessage();
 
-      addMessage(
-        "assistant",
-        "❌ Error: " +
-        error.message
-      );
-
-    }
-
-  }
-
-
-  /* =========================
-     ADD MESSAGE
-  ========================= */
-
-  function addMessage(
-    role,
-    text,
-    images = []
-  ) {
-
-    const row =
-      document.createElement(
-        "div"
-      );
-
-    row.className =
-      "message-row " +
-      role;
-
-
-    const bubble =
-      document.createElement(
-        "div"
-      );
-
-    bubble.className =
-      "message";
-
-
-    if (
-      images &&
-      images.length
-    ) {
-
-      const imagesBox =
-        document.createElement(
-          "div"
+      const errorMessage =
+        "An error occurred: " +
+        (
+          error &&
+          error.message
+            ? error.message
+            : "Unable to connect to AI."
         );
 
-      imagesBox.className =
-        "message-images";
-
-
-      images.forEach(
-        src => {
-
-          const img =
-            document.createElement(
-              "img"
-            );
-
-          img.src = src;
-
-          imagesBox.appendChild(
-            img
-          );
-
-        }
+      addMessageToScreen(
+        "assistant",
+        errorMessage,
+        []
       );
 
+      conversation.push({
+        role: "assistant",
+        content: errorMessage,
+        images: []
+      });
 
-      bubble.appendChild(
-        imagesBox
+      statusBox.textContent =
+        "Connection error";
+
+      console.error(
+        "Send error:",
+        error
       );
 
+    } finally {
+
+      isSending = false;
+
+      sendButton.disabled = false;
+
+      messageInput.focus();
+
+      scrollToBottom();
     }
-
-
-    const textDiv =
-      document.createElement(
-        "div"
-      );
-
-    textDiv.textContent =
-      text;
-
-
-    bubble.appendChild(
-      textDiv
-    );
-
-
-    row.appendChild(
-      bubble
-    );
-
-
-    chat.appendChild(
-      row
-    );
-
-
-    chat.scrollTop =
-      chat.scrollHeight;
-
-
-    return row;
-
   }
 
+  /* TEXTAREA */
 
-  /* =========================
-     SAVE CHAT
-  ========================= */
+  messageInput.addEventListener(
+    "input",
+    autoResize
+  );
 
-  function saveChat() {
+  function autoResize() {
 
-    if (!messages.length) {
-      return;
-    }
+    messageInput.style.height =
+      "auto";
 
+    messageInput.style.height =
+      Math.min(
+        messageInput.scrollHeight,
+        160
+      ) + "px";
+  }
 
-    const firstUser =
-      messages.find(
-        item =>
-          item.role === "user"
+  /* DARK MODE */
+
+  darkModeButton.onclick =
+    function () {
+
+      document.body.classList.toggle(
+        "dark"
       );
 
+      const isDark =
+        document.body.classList.contains(
+          "dark"
+        );
 
-    const title =
-      firstUser?.content ||
-      "New chat";
-
-
-    const chatData = {
-
-      id:
-        Date.now(),
-
-      title:
-        title.substring(
-          0,
-          60
-        ),
-
-      messages:
-        messages
-
+      localStorage.setItem(
+        "na_musamman_theme",
+        isDark
+          ? "dark"
+          : "light"
+      );
     };
 
+  /* NEW CHAT */
 
-    chats.unshift(
-      chatData
-    );
+  newChatButton.onclick =
+    startNewChat;
 
+  /* MOBILE MENU */
 
-    chats =
-      chats.slice(
-        0,
-        30
+  mobileMenu.onclick =
+    function () {
+
+      sidebar.classList.toggle(
+        "open"
       );
+    };
 
-
-    localStorage.setItem(
-      "naMusammanChats",
-      JSON.stringify(chats)
-    );
-
-
-    renderHistory();
-
-  }
-
-
-  /* =========================
-     HISTORY
-  ========================= */
-
-  function renderHistory() {
-
-    historyBox.innerHTML = "";
-
-
-    chats.forEach(
-      item => {
-
-        const div =
-          document.createElement(
-            "div"
-          );
-
-        div.className =
-          "history-item";
-
-        div.textContent =
-          item.title;
-
-
-        div.addEventListener(
-          "click",
-          () => loadChat(item)
-        );
-
-
-        historyBox.appendChild(
-          div
-        );
-
-      }
-    );
-
-  }
-
-
-  function loadChat(savedChat) {
-
-    messages =
-      savedChat.messages || [];
-
-
-    chat.innerHTML = "";
-
-
-    messages.forEach(
-      item => {
-
-        addMessage(
-
-          item.role,
-
-          item.content,
-
-          item.images || []
-
-        );
-
-      }
-    );
-
-  }
-
-
-  renderHistory();
-
-
-  /* =========================
-     VOICE INPUT
-  ========================= */
+  /* VOICE */
 
   let recognition = null;
 
-
   if (
-    "webkitSpeechRecognition"
-    in window
+    "SpeechRecognition" in window ||
+    "webkitSpeechRecognition" in window
   ) {
 
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
     recognition =
-      new webkitSpeechRecognition();
+      new SpeechRecognition();
 
-    recognition.continuous =
-      false;
+    recognition.continuous = false;
 
-    recognition.interimResults =
-      false;
+    recognition.interimResults = false;
 
-    recognition.lang =
-      "ha-NG";
+    recognition.lang = "en-US";
 
+    recognition.onstart =
+      function () {
+        voiceButton.textContent =
+          "🔴";
+      };
+
+    recognition.onend =
+      function () {
+        voiceButton.textContent =
+          "🎤";
+      };
 
     recognition.onresult =
-      (event) => {
+      function (event) {
 
-        const transcript =
-          event
-            .results[0][0]
-            .transcript;
+        const result =
+          event.results[0][0].transcript;
 
-        messageInput.value +=
-          transcript;
+        messageInput.value =
+          (
+            messageInput.value
+              ? messageInput.value + " "
+              : ""
+          ) + result;
 
+        autoResize();
+
+        messageInput.focus();
       };
-
 
     recognition.onerror =
-      () => {
-
-        console.log(
-          "Voice recognition error"
-        );
-
+      function () {
+        voiceButton.textContent =
+          "🎤";
       };
-
   }
 
+  voiceButton.onclick =
+    function () {
 
-  micBtn.addEve
-```
+      if (!recognition) {
+
+        alert(
+          "Voice input is not supported by this browser."
+        );
+
+        return;
+      }
+
+      try {
+        recognition.start();
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+  /* START */
+
+  loadStorage();
+
+  autoResize();
+
+  messageInput.focus();
+</script>
+
+</body>
+</html>
